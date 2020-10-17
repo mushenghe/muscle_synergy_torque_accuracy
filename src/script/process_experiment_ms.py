@@ -1,4 +1,4 @@
-from process_helper import first_last_index,compute_baseline_mean,standard_process,process_state4_5
+from process_helper import load_data,first_last_index,compute_baseline_mean,standard_process,process_state4_5,find_max_interval
 from matrix_factorization import multiplication_update
 from plot_multiple import load_data,plot_baseline,basisvec_N_plot
 import numpy as np
@@ -37,8 +37,16 @@ if __name__ == "__main__":
 
     # Step2: Find the maximum vector:
 
+    ''' 
+    use moving average:
+
+    SET3_TRAILS = ['set03_trial01.txt','set03_trial02.txt','set03_trial03.txt','set03_trial04.txt']
+    max_set_trail, max_index = find_max_interval('/home/mushenghe/Desktop/final_project/data/Oct09/c01/Right/MaxMeasurements/', SET3_TRAILS, 2, 2500, 500)
+    '''
+
     max_set = []
     max_set3_data = np.loadtxt('/home/mushenghe/Desktop/final_project/data/Oct09/c01/Right/MaxMeasurements/set03_trial01.txt')
+
     max_set3 = standard_process(max_set3_data[6689:6689 + 1000,10:18], baseline)
     max_set.append(max_set3)
 

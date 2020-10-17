@@ -3,6 +3,21 @@ import numpy as np
 '''
 helper functions for signal processing
 '''
+def load_data(txt_path, column_x, column_y):
+    """
+    Loads data from txt files 
+
+    Args:
+        txt_path (str): path to txt file containing the data (e.g. 'data/blobs.json')
+    Returns:
+        features (np.ndarray): numpy array containing the x values
+        targets (np.ndarray): numpy array containing the y values in the range -1, 1.
+    """
+
+    x = np.loadtxt(txt_path)[:, column_x]
+    y = np.loadtxt(txt_path)[:, column_y]
+
+    return x, y
 
 def first_last_index(arr):
     # find the first index of the last set
@@ -67,4 +82,18 @@ def process_state4_5(path,SET_TRAILS,count,baseline,max_vec = np.zeros((1,8))):
         
     return SEG_STATE4,SEG_STATE5
 
-def 
+def find_max_interval(path, SET_TRAILS, column_index, window_size, step):
+    Max = 0
+    max_index = 0
+    max_set_trail = ''
+    for data_file in SET_TRAILS:
+        target_vec = np.loadtxt(path+ data_file)[:, column_index]
+        for index in range(0,len(target_vec)-window_size,step):
+            interval_mean = np.mean(target_vec[index : index + window_size])
+            if interval_mean > Max:
+                Max = interval_mean
+                max_index = index
+                max_set_trail = data_file
+
+    print(Max)
+    return max_set_trail, max_index

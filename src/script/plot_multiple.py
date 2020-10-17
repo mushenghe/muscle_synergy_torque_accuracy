@@ -57,23 +57,19 @@ def basisvec_one_plot(N,basis_vec,width):
     plt.legend(loc='best')
     plt.show()
 
-def basisvec_N_plot(N,basis_vec,width):
+def basisvec_N_plot(N,group,basis_vec,width):
     ind = np.arange(N) 
 
-    for i in range(1,N+1):
-        plt.subplot(2,N/2,i)
-        plt.bar(ind + (i-1)*width, basis_vec[i-1], width,label='basis_vec'+'i')
-
-    plt.ylabel('Activation Strength')
     plt.title('Muscle synergy')   
+    for i in range(1,group+1):
+        plt.subplot(2,group/2,i)
+        plt.bar(ind, basis_vec[i-1], width,label='basis_vec '+ str(i))
+        plt.ylabel('Activation Strength for basis vector ' + str(i))
+        plt.xticks(rotation=45, ha='right')
+        plt.xticks(ind, ('Bicep','Tricep lateral','Anterior deltoid','Medial deltoid','Posterior deltoid','Pectoralis major','Lower trapezius','Middle trapezius'))
+        plt.legend(loc='best')
 
-    # plt.bar(ind + width, basis_vec2, width,label='basis_vec2')
-    # plt.bar(ind + 2*width, basis_vec3, width, label='basis_vec3')
-    # plt.bar(ind + 3*width, basis_vec4, width,label='basis_vec4')
-
-    plt.xticks(ind + width / 2, ('Bicep','Tricep lateral','Anterior deltoid','Medial deltoid','Posterior deltoid','Pectoralis major','Lower trapezius','Middle trapezius'))
-    plt.legend(loc='best')
-    #plt.savefig('/home/mushenghe/Desktop/final_project/muscle_synergy/src/image/Oct9/4set_afternorm_state4.png')
+    plt.savefig('/home/mushenghe/Desktop/final_project/muscle_synergy/src/image/Oct9/basis_vec_ms_seg5.png')
     plt.show()
 
 

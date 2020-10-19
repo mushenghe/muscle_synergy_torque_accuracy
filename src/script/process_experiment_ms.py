@@ -99,10 +99,12 @@ if __name__ == "__main__":
     # SEG_STATE4 and SEG_STATE5 are 10 * 8 matrix
 
     group = 4
-    init_W = np.random.rand(len(SEG_STATE5),group)
     init_H = np.random.rand(group, 8)
 
-    W,H = multiplication_update(SEG_STATE5, group, thresh = 0.01,num_iter = 100,init_W = init_W, init_H = init_H,print_enabled = False)
+    SEG_STATE4.extend(SEG_STATE5)
+    init_W = np.random.rand(len(SEG_STATE4),group)
+
+    W,H = multiplication_update(SEG_STATE4, group, thresh = 0.01,num_iter = 100,init_W = init_W, init_H = init_H,print_enabled = False)
     
     # plot the basis vectors
     # print(W)

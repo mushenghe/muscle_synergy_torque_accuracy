@@ -101,13 +101,13 @@ if __name__ == "__main__":
     group = 4
     init_H = np.random.rand(group, 8)
 
-    SEG_STATE4.extend(SEG_STATE5)
-    init_W = np.random.rand(len(SEG_STATE4),group)
+    # SEG_STATE4.extend(SEG_STATE5)
+    init_W = np.random.rand(len(SEG_STATE5),group)
 
-    W,H = multiplication_update(SEG_STATE4, group, thresh = 0.01,num_iter = 100,init_W = init_W, init_H = init_H,print_enabled = False)
+    W,H = multiplication_update(SEG_STATE5, group, thresh = 0.01,num_iter = 100,init_W = init_W, init_H = init_H,print_enabled = False)
     
     # plot the basis vectors
-    # print(W)
+    print(W)
     EMGs = 8
     width = 0.5  
     basisvec_N_plot(EMGs,group,H,width)

@@ -60,7 +60,7 @@ def basisvec_one_plot(N,basis_vec,width):
 def basisvec_N_plot(N,group,basis_vec,width):
     ind = np.arange(N) 
 
-    plt.title('Muscle synergy')   
+    plt.title('Muscle synergy for set1')   
     for i in range(1,group+1):
         plt.subplot(2,group/2,i)
         plt.bar(ind, basis_vec[i-1], width,label='basis_vec '+ str(i))
@@ -69,27 +69,13 @@ def basisvec_N_plot(N,group,basis_vec,width):
         plt.xticks(ind, ('Bicep','Tricep lateral','Anterior deltoid','Medial deltoid','Posterior deltoid','Pectoralis major','Lower trapezius','Middle trapezius'))
         plt.legend(loc='best')
 
-    plt.savefig('/home/mushenghe/Desktop/final_project/muscle_synergy/src/image/Oct9/basis_vec_ms_seg5.png')
+    # plt.savefig('/home/mushenghe/Desktop/final_project/muscle_synergy/src/image/Oct9/basis_vec_ms_seg5.png')
     plt.show()
 
 
 
 
-def load_data(txt_path, column_x, column_y):
-    """
-    Loads data from txt files 
 
-    Args:
-        txt_path (str): path to txt file containing the data (e.g. 'data/blobs.json')
-    Returns:
-        features (np.ndarray): numpy array containing the x values
-        targets (np.ndarray): numpy array containing the y values in the range -1, 1.
-    """
-
-    x = np.loadtxt(txt_path)[:, column_x]
-    y = np.loadtxt(txt_path)[:, column_y]
-
-    return x, y
 
 
 '''

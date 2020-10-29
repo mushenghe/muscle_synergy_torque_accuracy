@@ -38,18 +38,21 @@ def compute_baseline_mean(path):
     baseline = np.mean(target_baseline, axis = 0)
     return baseline
 
-def standard_process(data_vec, baseline, max_vec = np.zeros((1,8))):
+def norm_vec(target_vec,max_vec = np.zeros((1,8))):
+    # Normalize the amplitude
+    target_base_data = np.divide(target_vec,max_vec)
+    return target_vec    
+
+def standard_process(data_vec, baseline):
     # 1. Subtract the baseline vector from the data vector
     # 2. Rectify it and compute the mean for all data points
-    # 3. Normalize the amplitude
 
     subtractbase_data_vec = np.array(data_vec) - np.array(baseline)
     target_base_data = np.mean(np.absolute(subtractbase_data_vec),axis = 0)
-    if max_vec.any():
-        target_base_data = np.divide(target_base_data,max_vec)
+    
     return target_base_data    
 
-def process_state4_5(path,SET_TRAILS,count,baseline,max_vec = np.zeros((1,8))):
+def process_state4_5(path,SET_TRAILS,count,baseline):
     # Step 2 Extract data for state 4 and 5 from MatchingTask:
 
     SEG_STATE4 = []
@@ -71,8 +74,8 @@ def process_state4_5(path,SET_TRAILS,count,baseline,max_vec = np.zeros((1,8))):
             state4_vec = reversed_data[indexof_lpf4 + 1000:indexof_lpf4 + 1500,10:18]
             state5_vec = reversed_data[indexof_lpf5 - 250:indexof_lpf5 + 250,10:18]
 
-            seg_state4 = standard_process(state4_vec,baseline,max_vec)
-            seg_state5 = standard_process(state5_vec,baseline,max_vec)
+            seg_state4 = standard_process(state4_vec,baseline)
+            seg_state5 = standard_process(state5_vec,baseline)
 
             SEG_STATE4.append(seg_state4)
             SEG_STATE5.append(seg_state5)
@@ -82,12 +85,12 @@ def process_state4_5(path,SET_TRAILS,count,baseline,max_vec = np.zeros((1,8))):
         
     return SEG_STATE4,SEG_STATE5
 
-def find_max_interval(path, SET_TRAILS, column_index, window_size, step):
+def find_max_interval(path, SET_TRAILS, column_index, baseline, window_size, step):
     Max = 0
     max_index = 0
     max_set_trail = ''
     for data_file in SET_TRAILS:
-        target_vec = np.loadtxt(path+ data_file)[:, column_index]
+        target_vec = np.absolute(np.loadtxt(path + data_file)[:, column_index] - np.array(baseline))
         for index in range(0,len(target_vec)-window_size,step):
             interval_mean = np.mean(target_vec[index : index + window_size])
             if interval_mean > Max:
@@ -95,5 +98,4 @@ def find_max_interval(path, SET_TRAILS, column_index, window_size, step):
                 max_index = index
                 max_set_trail = data_file
 
-    print(Max)
-    return max_set_trail, max_index
+    return Max

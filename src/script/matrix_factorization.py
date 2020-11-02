@@ -1,10 +1,11 @@
-
 import numpy as np
 
 '''
 matrix factorization algorithms
 '''
-def multiplication_update(A, k, thresh = 0.01, num_iter = 100, init_W=None, init_H=None, print_enabled=False):
+
+
+def multiplication_update(A, k, thresh=0.01, num_iter=100, init_W=None, init_H=None, print_enabled=False):
     '''
     Run multiplicative updates to perform nonnegative matrix factorization on A.
     Return matrices W, H such that A = WH.
@@ -51,7 +52,7 @@ def multiplication_update(A, k, thresh = 0.01, num_iter = 100, init_W=None, init
         H = np.random.rand(k, np.size(A, 1))
     else:
         H = init_H
-    
+
     delta = 0.000001
     itt = 1
     below_thresh = False
@@ -72,19 +73,19 @@ def multiplication_update(A, k, thresh = 0.01, num_iter = 100, init_W=None, init
 
         # Update W
         AH_T = A.dot(H.T)
-        WHH_T =  W.dot(H).dot(H.T) + delta
+        WHH_T = W.dot(H).dot(H.T) + delta
 
         for i in range(np.size(W, 0)):
             for j in range(np.size(W, 1)):
                 W[i, j] = W[i, j] * AH_T[i, j] / WHH_T[i, j]
-        
-        error = np.linalg.norm(A - np.dot(W,H), ord=2)  
+
+        error = np.linalg.norm(A - np.dot(W, H), ord=2)
         if error < thresh:
-            below_thresh = True 
-        itt +=1
+            below_thresh = True
+        itt += 1
 
         if print_enabled:
-            frob_norm = np.linalg.norm(A - np.dot(W ,H), 'fro')
+            frob_norm = np.linalg.norm(A - np.dot(W, H), 'fro')
             print("iteration " + str(n + 1) + ": " + str(frob_norm))
 
     return W, H

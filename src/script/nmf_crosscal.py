@@ -3,6 +3,7 @@ from numpy.random import randn, rand
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 
+
 def crossval_nmf(A, rank, p_holdout=.25, tol=1e-4):
     '''
     Fits NMF while holding out data at random
@@ -46,12 +47,12 @@ def crossval_nmf(A, rank, p_holdout=.25, tol=1e-4):
     # initial loss
     converged = False
     resid = np.dot(W, H) - A
-    train_hist = [np.sqrt(np.mean((resid[M])**2))]
-    test_hist = [np.sqrt(np.mean((resid[~M])**2))]
+    train_hist = [np.sqrt(np.mean((resid[M]) ** 2))]
+    test_hist = [np.sqrt(np.mean((resid[~M]) ** 2))]
 
     # initial bias
     delta = 0.000001
-  
+
     # optimize
     while not converged:
         # Update H
@@ -64,7 +65,7 @@ def crossval_nmf(A, rank, p_holdout=.25, tol=1e-4):
 
         # Update W
         AH_T = A.dot(H.T)
-        WHH_T =  W.dot(H).dot(H.T) + delta
+        WHH_T = W.dot(H).dot(H.T) + delta
 
         for i in range(m):
             for j in range(rank):
@@ -72,9 +73,34 @@ def crossval_nmf(A, rank, p_holdout=.25, tol=1e-4):
 
         # recprd train/test error
         resid = np.dot(W, H) - A
-        train_hist.append(np.sqrt(np.mean((resid[M])**2)))
-        test_hist.append(np.sqrt(np.mean((resid[~M])**2)))
-        converged = (train_hist[-2]-train_hist[-1]) < tol
-        
+        train_hist.append(np.sqrt(np.mean((resid[M]) ** 2)))
+        test_hist.append(np.sqrt(np.mean((resid[~M]) ** 2)))
+        converged = (train_hist[-2] - train_hist[-1]) < tol
 
     return W, H, train_hist, test_hist
+
+
+def VAF(W, H, A):
+    """
+
+    Args:
+        W: ndarray, m x rank matrix, activation coefficients obtained from nmf
+        H: ndarray, rank x 8 matrix, basis vectors obtained from nmf
+        A: ndarray, m x 8 matrix, original time-invariant sEMG signal
+
+    Returns:
+        global_VAF: float, VAF calculated for the entire A based on the W&H
+        local_VAF: 1D array, VAF calculated for each muscle (column) in A based on W&H
+    """
+    SSE_matrix = np.square(np.dot(W, H) - A)
+    SST_matrix = np.square(A)
+
+    global_SSE = np.sum(SSE_matrix)
+    global_SST = np.sum(SST_matrix)
+    global_VAF = 100 * (1 - global_SSE / global_SST)
+
+    local_SSE = np.sum(SSE_matrix, axis = 0)
+    local_SST = np.sum(SST_matrix, axis = 0)
+    local_VAF = 100 * (1 - np.divide(local_SSE, local_SST))
+
+    return global_VAF, local_VAF

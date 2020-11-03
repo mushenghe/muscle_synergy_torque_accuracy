@@ -4,7 +4,7 @@ import numpy as np
 '''
 matrix factorization algorithms
 '''
-def multiplication_update(A, k, thresh = 0.01, num_iter = 100, init_W=None, init_H=None, print_enabled=False):
+def multiplication_update(A, k, thresh = 1e-4, init_W=None, init_H=None, print_enabled=False):
     '''
     Run multiplicative updates to perform nonnegative matrix factorization on A.
     Return matrices W, H such that A = WH.
@@ -59,8 +59,12 @@ def multiplication_update(A, k, thresh = 0.01, num_iter = 100, init_W=None, init
     A = np.array(A)
     W = np.array(W)
     H = np.array(H)
+
+    sse_hist = []
+    SSE_hist = []
+    error_hist = []
     # Decompose the input matrix
-    while not below_thresh and itt <= num_iter:
+    while not below_thresh:
 
         # Update H
         W_TA = W.T.dot(A)
@@ -78,13 +82,17 @@ def multiplication_update(A, k, thresh = 0.01, num_iter = 100, init_W=None, init
             for j in range(np.size(W, 1)):
                 W[i, j] = W[i, j] * AH_T[i, j] / WHH_T[i, j]
         
-        error = np.linalg.norm(A - np.dot(W,H), ord=2)  
-        if error < thresh:
-            below_thresh = True 
-        itt +=1
+        resid = np.dot(W, H) - A
+        SE = np.square(resid)
+
+        SSE_hist.append(np.sum(SE))  #scaler
+        sse_hist.append(np.sum(SE,axis = 0)) #(1,8)
+        error_hist.append(np.sqrt(np.mean((resid)**2)))
+        
+        below_thresh = (error_hist[-2]-error_hist[-1]) < thresh
 
         if print_enabled:
             frob_norm = np.linalg.norm(A - np.dot(W ,H), 'fro')
             print("iteration " + str(n + 1) + ": " + str(frob_norm))
 
-    return W, H
+    return W, H, SSE_hist[-1], sse_hist[-1]

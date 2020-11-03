@@ -109,7 +109,6 @@ if __name__ == "__main__":
     SET_TRAILS = []
     SEG_STATE4 = []
     SEG_STATE5 = []
-    SEG = []
 
     SET1_TRAILS = ['set01_trial01.txt','set01_trial02.txt','set01_trial03.txt','set01_trial04.txt', 'set01_trial05.txt', \
         'set01_trial06.txt', 'set01_trial07.txt', 'set01_trial08.txt', 'set01_trial09.txt', 'set01_trial10.txt']
@@ -123,115 +122,89 @@ if __name__ == "__main__":
         'set03_trial05.txt', 'set03_trial06.txt', 'set03_trial07.txt', 'set03_trial08.txt', 'set03_trial09.txt', 'set03_trial10.txt']
     SET_TRAILS.append(SET3_TRAILS)
 
-    SET_TRAILS = np.array(SET_TRAILS).reshape(30,)
-
-    print(np.shape(SET_TRAILS))
-
     matching_path = DATA_PATH + 'MatchingTask/Multi_Multi_El/'
 
-
-    for i in range(3):
-        seg_state4,seg_state5 = process_state4_5(matching_path, SET_TRAILS[i], baseline_sitting)
-        SEG_STATE4.append(norm_vec(seg_state4, max_set))
-        SEG_STATE5.append(norm_vec(seg_state5, max_set))
+    # append all sets of segment 4 and 5 together in SEG_STATE4 and SEG_STATE5
+    # for i in range(3):
+    #     seg_state4,seg_state5 = process_state4_5(matching_path, SET_TRAILS[i], baseline_sitting)
+    #     SEG_STATE4.append(norm_vec(seg_state4, max_set))
+    #     SEG_STATE5.append(norm_vec(seg_state5, max_set))
+    seg_state4,seg_state5 = process_state4_5(matching_path, SET_TRAILS[0], baseline_sitting)
+    # iterate each set for 100 times, compute best H for segment 4 in each set and append
+    # them together in all_H
     
-    train_err = []
-    test_err = []
+    A = seg_state4
+    ranks = []
+    SSE = []
+    SST = np.sum(np.square(A))
+
+    sse = []
+    sst = np.sum(np.square(A),axis = 0)
+
+    rank_range = range(2,5)
     repeat_range = range(100)
-    set_range = range(2)
-    synergy_range = range(2)
 
-    min = 100
-    min_H = randn(2, 8)
-    all_H = []
-    norm_H = []
+    for rank, repeat in itertools.product(rank_range, repeat_range):
+        W, H, last_SSE, last_sse = multiplication_update(A,rank)
+        ranks.append(rank)
+        SSE.append(last_SSE)
+        sse.append(last_sse)
 
-    for set_index in set_range:
-        for repeat in repeat_range:
-            W, H, train, test = crossval_nmf(np.array(SEG[set_index]), 2)
-            train_err.append(train[-1])
-            test_err.append(test[-1])
-            if test[-1] < min:
-                min = test[-1]
-                min_H = H
-        all_H.append(min_H[0]/LA.norm(min_H[0]))
-        all_H.append(min_H[1]/LA.norm(min_H[1]))
+    ranks = np.array(ranks)
+    SSE = np.array(SSE)
+    sse = np.array(sse)
 
-    print(np.shape(all_H))
+    print('print(SSE)')
+    print(SSE)
+    print('print(sse)')
+    print(sse)
     
+
   
+    
+    # print(np.shape(seg_state4.size))
+
+
+    '''
     # plot the basis vectors
     EMGs = 8
     width = 0.5  
     ind = np.arange(EMGs) 
 
+    plt.title('Muscle synergy for set1')   
     for i in range(1,3):
         plt.subplot(1,2,i)
         plt.bar(ind, all_H[i-1], width,label='basis_vec '+ str(i))
-        plt.ylabel('Normalized Activation Strength for basis vector' + str(i) + ' of segment 4')
+        plt.ylabel('Normalized Activation Strength for basis vector' + str(i) + ' of set 1')
         plt.xticks(rotation=45, ha='right')
         plt.xticks(ind, ('Bicep','Tricep lateral','Anterior deltoid','Medial deltoid','Posterior deltoid','Pectoralis major','Lower trapezius','Middle trapezius'))
         plt.legend(loc='best')
-    plt.title('Normalized Muscle synergy for segment 4')
+    plt.title('Normalized Muscle synergy for set 1')
 
-    plt.savefig('/home/mushenghe/Desktop/final_project/muscle_synergy/src/image/Oct23/basis_vec_seg4.png')
+    plt.savefig('/home/mushenghe/Desktop/final_project/muscle_synergy/src/image/Oct23/basis_vec_set1_seg4.png')
     plt.show()
 
     for i in range(3,5):
         plt.subplot(1,2,i-2)
         plt.bar(ind, all_H[i-1], width,label='basis_vec '+ str(i-2))
-        plt.ylabel('Normalized Activation Strength for basis vector' + str(i-2) + ' of segment 5')
+        plt.ylabel('Normalized Activation Strength for basis vector' + str(i-2) + ' of set 2')
         plt.xticks(rotation=45, ha='right')
         plt.xticks(ind, ('Bicep','Tricep lateral','Anterior deltoid','Medial deltoid','Posterior deltoid','Pectoralis major','Lower trapezius','Middle trapezius'))
         plt.legend(loc='best')
-    plt.title('Normalized Muscle synergy for segment 5')
+    plt.title('Normalized Muscle synergy for set 2')
 
-    plt.savefig('/home/mushenghe/Desktop/final_project/muscle_synergy/src/image/Oct23/basis_vec_seg5.png')
+    plt.savefig('/home/mushenghe/Desktop/final_project/muscle_synergy/src/image/Oct23/basis_vec_set2_seg4.png')
     plt.show()
 
-    
+    for i in range(5,7):
+        plt.subplot(1,2,i-4)
+        plt.bar(ind, all_H[i-1], width,label='basis_vec '+ str(i-4))
+        plt.ylabel('Normalized Activation Strength for basis vector' + str(i-4) + ' of set 3')
+        plt.xticks(rotation=45, ha='right')
+        plt.xticks(ind, ('Bicep','Tricep lateral','Anterior deltoid','Medial deltoid','Posterior deltoid','Pectoralis major','Lower trapezius','Middle trapezius'))
+        plt.legend(loc='best')
+    plt.title('Normalized Muscle synergy for set 3')
 
-    
-    
-    # print(np.shape(seg_state4.size))
-    '''
-    # Step4 take seg_state 4 and plot the RMSE for training set and validation set:
-
-    ranks = []
-    train_err = []
-    test_err = []
-
-    rank_range = range(2,5)
-    repeat_range = range(100)
-
-    with tqdm(total=len(rank_range)*len(repeat_range)) as pbar:
-    for rank, repeat in itertools.product(rank_range, repeat_range):
-        _, _, train, test = crossval_nmf(np.array(seg_state4), rank)
-        ranks.append(rank)
-        train_err.append(train[-1])
-        test_err.append(test[-1])
-        
-    
-    ranks = np.array(ranks)
-    train_err = np.array(train_err)
-    test_err = np.array(test_err)
-
-    fig, axes = plt.subplots(1, 2, sharey=True, sharex=True, figsize=(7, 4))
-    axes[0].plot(ranks + randn(ranks.size)*.1, train_err, '.k')
-    axes[0].plot(np.unique(ranks), [np.mean(train_err[ranks==r]) for r in np.unique(ranks)], '-r', zorder=-1)
-    axes[0].set_ylabel('RMSE')
-    axes[0].set_title('Train Error')
-    axes[0].set_xlabel('# of basis vectors')
-
-    axes[1].plot(ranks + randn(ranks.size)*.1, test_err, '.k')
-    axes[1].plot(np.unique(ranks), [np.mean(test_err[ranks==r]) for r in np.unique(ranks)], '-r', zorder=-1)
-    axes[1].set_xticks(np.unique(ranks).astype(int))
-    axes[1].set_title('Test Error')
-    axes[1].set_xlabel('# of basis vectors')
-
-    fig.tight_layout()
-    fig.savefig('cv_nmf.jpg')
+    plt.savefig('/home/mushenghe/Desktop/final_project/muscle_synergy/src/image/Oct23/basis_vec_set3_seg4.png')
     plt.show()
     '''
-    
-   

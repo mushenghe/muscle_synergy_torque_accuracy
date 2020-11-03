@@ -52,12 +52,12 @@ def standard_process(data_vec, baseline):
     
     return target_base_data    
 
-def process_state4_5(path,SET_TRAILS,count,baseline):
+def process_state4_5(path,SET_TRAILS,baseline):
     # Step 2 Extract data for state 4 and 5 from MatchingTask:
 
     SEG_STATE4 = []
     SEG_STATE5 = []
-    for trail_index in range (0,count):
+    for trail_index in range (0,len(SET_TRAILS)):
         trail_data = np.loadtxt(path + SET_TRAILS[trail_index])
         rows,columns = trail_data.shape
         # reverse the array to find the last data piece

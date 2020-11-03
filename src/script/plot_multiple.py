@@ -64,7 +64,7 @@ def basisvec_N_plot(N,group,basis_vec,width):
     for i in range(1,group+1):
         plt.subplot(2,group/2,i)
         plt.bar(ind, basis_vec[i-1], width,label='basis_vec '+ str(i))
-        plt.ylabel('Activation Strength for basis vector ' + str(i))
+        plt.ylabel('Normalized Activation Strength for basis vector' + str(i))
         plt.xticks(rotation=45, ha='right')
         plt.xticks(ind, ('Bicep','Tricep lateral','Anterior deltoid','Medial deltoid','Posterior deltoid','Pectoralis major','Lower trapezius','Middle trapezius'))
         plt.legend(loc='best')

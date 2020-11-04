@@ -109,6 +109,7 @@ if __name__ == "__main__":
     SET_TRAILS = []
     SEG_STATE4 = []
     SEG_STATE5 = []
+    SEG = []
 
     SET1_TRAILS = ['set01_trial01.txt','set01_trial02.txt','set01_trial03.txt','set01_trial04.txt', 'set01_trial05.txt', \
         'set01_trial06.txt', 'set01_trial07.txt', 'set01_trial08.txt', 'set01_trial09.txt', 'set01_trial10.txt']
@@ -122,18 +123,22 @@ if __name__ == "__main__":
         'set03_trial05.txt', 'set03_trial06.txt', 'set03_trial07.txt', 'set03_trial08.txt', 'set03_trial09.txt', 'set03_trial10.txt']
     SET_TRAILS.append(SET3_TRAILS)
 
+    SET_TRAILS = np.array(SET_TRAILS).reshape(30,)
+
+    print(np.shape(SET_TRAILS))
+
     matching_path = DATA_PATH + 'MatchingTask/Multi_Multi_El/'
 
 
-    for i in range(3):
-        seg_state4,seg_state5 = process_state4_5(matching_path, SET_TRAILS[i], baseline_sitting)
-        SEG_STATE4.append(norm_vec(seg_state4, max_set))
-        SEG_STATE5.append(norm_vec(seg_state5, max_set))
+    seg_state4,seg_state5 = process_state4_5(matching_path, SET_TRAILS, baseline_sitting)
+
+    SEG.append(seg_state4)
+    SEG.append(seg_state5)
     
     train_err = []
     test_err = []
     repeat_range = range(100)
-    set_range = range(3)
+    set_range = range(2)
     synergy_range = range(2)
 
     min = 100
@@ -143,7 +148,7 @@ if __name__ == "__main__":
 
     for set_index in set_range:
         for repeat in repeat_range:
-            W, H, train, test = crossval_nmf(np.array(SEG_STATE4[set_index]), 2)
+            W, H, train, test = crossval_nmf(np.array(SEG[set_index]), 2)
             train_err.append(train[-1])
             test_err.append(test[-1])
             if test[-1] < min:
@@ -151,6 +156,8 @@ if __name__ == "__main__":
                 min_H = H
         all_H.append(min_H[0]/LA.norm(min_H[0]))
         all_H.append(min_H[1]/LA.norm(min_H[1]))
+        
+    print(np.shape(all_H))
     
   
     # plot the basis vectors
@@ -158,44 +165,31 @@ if __name__ == "__main__":
     width = 0.5  
     ind = np.arange(EMGs) 
 
-    plt.title('Muscle synergy for set1')   
     for i in range(1,3):
         plt.subplot(1,2,i)
         plt.bar(ind, all_H[i-1], width,label='basis_vec '+ str(i))
-        plt.ylabel('Normalized Activation Strength for basis vector' + str(i) + ' of set 1')
+        plt.ylabel('Normalized Activation Strength for basis vector' + str(i) + ' of segment 4')
         plt.xticks(rotation=45, ha='right')
         plt.xticks(ind, ('Bicep','Tricep lateral','Anterior deltoid','Medial deltoid','Posterior deltoid','Pectoralis major','Lower trapezius','Middle trapezius'))
         plt.legend(loc='best')
-    plt.title('Normalized Muscle synergy for set 1')
+    plt.title('Normalized Muscle synergy for segment 4')
 
-    plt.savefig('/home/mushenghe/Desktop/final_project/muscle_synergy/src/image/Oct23/basis_vec_set1_seg4.png')
+    plt.savefig('/home/mushenghe/Desktop/final_project/muscle_synergy/src/image/Oct23/basis_vec_seg4.png')
     plt.show()
 
     for i in range(3,5):
         plt.subplot(1,2,i-2)
         plt.bar(ind, all_H[i-1], width,label='basis_vec '+ str(i-2))
-        plt.ylabel('Normalized Activation Strength for basis vector' + str(i-2) + ' of set 2')
+        plt.ylabel('Normalized Activation Strength for basis vector' + str(i-2) + ' of segment 5')
         plt.xticks(rotation=45, ha='right')
         plt.xticks(ind, ('Bicep','Tricep lateral','Anterior deltoid','Medial deltoid','Posterior deltoid','Pectoralis major','Lower trapezius','Middle trapezius'))
         plt.legend(loc='best')
-    plt.title('Normalized Muscle synergy for set 2')
+    plt.title('Normalized Muscle synergy for segment 5')
 
-    plt.savefig('/home/mushenghe/Desktop/final_project/muscle_synergy/src/image/Oct23/basis_vec_set2_seg4.png')
+    plt.savefig('/home/mushenghe/Desktop/final_project/muscle_synergy/src/image/Oct23/basis_vec_seg5.png')
     plt.show()
 
-    for i in range(5,7):
-        plt.subplot(1,2,i-4)
-        plt.bar(ind, all_H[i-1], width,label='basis_vec '+ str(i-4))
-        plt.ylabel('Normalized Activation Strength for basis vector' + str(i-4) + ' of set 3')
-        plt.xticks(rotation=45, ha='right')
-        plt.xticks(ind, ('Bicep','Tricep lateral','Anterior deltoid','Medial deltoid','Posterior deltoid','Pectoralis major','Lower trapezius','Middle trapezius'))
-        plt.legend(loc='best')
-    plt.title('Normalized Muscle synergy for set 3')
-
-    plt.savefig('/home/mushenghe/Desktop/final_project/muscle_synergy/src/image/Oct23/basis_vec_set3_seg4.png')
-    plt.show()
-   
-
+    
 
     
     

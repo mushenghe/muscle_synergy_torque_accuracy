@@ -59,10 +59,11 @@ def multiplication_update(A, k, thresh = 1e-4, init_W=None, init_H=None, print_e
     A = np.array(A)
     W = np.array(W)
     H = np.array(H)
+    resid = np.dot(W, H) - A
 
     sse_hist = []
     SSE_hist = []
-    error_hist = []
+    error_hist = [np.sqrt(np.mean((resid)**2))]
     # Decompose the input matrix
     while not below_thresh:
 
@@ -88,7 +89,7 @@ def multiplication_update(A, k, thresh = 1e-4, init_W=None, init_H=None, print_e
         SSE_hist.append(np.sum(SE))  #scaler
         sse_hist.append(np.sum(SE,axis = 0)) #(1,8)
         error_hist.append(np.sqrt(np.mean((resid)**2)))
-        
+
         below_thresh = (error_hist[-2]-error_hist[-1]) < thresh
 
         if print_enabled:

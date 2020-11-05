@@ -151,13 +151,11 @@ if __name__ == "__main__":
         sse.append(last_sse)
 
     ranks = np.array(ranks)
-    SSE = np.array(SSE)
-    sse = np.array(sse)
+    SSE = np.array(SSE) #(300,)
+    sse = np.array(sse) #(300,8)
 
-    print('print(SSE)')
-    print(SSE)
-    print('print(sse)')
-    print(sse)
+    for rank in rank_range:
+        VAF = 
     
 
   

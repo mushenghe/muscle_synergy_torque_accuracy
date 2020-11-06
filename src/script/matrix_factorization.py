@@ -3,10 +3,6 @@ import numpy as np
 '''
 matrix factorization algorithms
 '''
-<<<<<<< HEAD
-def multiplication_update(A, k, thresh = 1e-4, init_W=None, init_H=None, print_enabled=False):
-=======
-
 
 def multiplication_update(A, k, thresh=0.01, num_iter=100, init_W=None, init_H=None, print_enabled=False):
 

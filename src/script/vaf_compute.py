@@ -1,13 +1,13 @@
-from script.process_helper import load_data,first_last_index,norm_vec,compute_baseline_mean,standard_process,process_state4_5,find_max_interval
-from script.matrix_factorization import multiplication_update,VAF
-# from plot_multiple import plot_baseline,basisvec_N_plot
+from process_helper import load_data,first_last_index,norm_vec,compute_baseline_mean,standard_process,process_state4_5,find_max_interval
+from matrix_factorization import multiplication_update,VAF
+from plot_multiple import plot_baseline,basisvec_N_plot
 import numpy as np
 from numpy import linalg as LA
 import matplotlib.pyplot as plt
 import itertools
 # from tqdm import tqdm
 from numpy.random import randn, rand
-from script.nmf_crosscal import *
+from nmf_crosscal import *
 
 # Step1: Load BaselineEMG_sitting data, select datas when state = 1 and compute the mean for each EMG signal
 # Step2: Find the maximum for each EMGs
@@ -34,7 +34,7 @@ max_midtrap - max value for Middle trapezius
 
 '''
 
-def rank_determine_helper(A,repeat_num):
+def rank_determine_helper(A, rank, repeat_num):
     '''
     mean(global VAF)>90% & mean(local VAF) > 80%
 
@@ -68,7 +68,7 @@ def rank_determine_helper(A,repeat_num):
 
 if __name__ == "__main__":
 
-    DATA_PATH = '/Users/ncr5341/Downloads/c02/Right/'
+    DATA_PATH = '/home/mushenghe/Desktop/final_project/data/Oct23/' 
 
     # Step1: Find two baseline vectors, one for sitting one for standing
     baseline1_sit = compute_baseline_mean(DATA_PATH + 'BaselineEMG_sitting/set01_trial01.txt')
@@ -173,7 +173,6 @@ if __name__ == "__main__":
     # norm_seg4 = norm_vec(seg_state4, max_set)
     
     A = SEG_STATE4[~np.isnan(SEG_STATE4).any(axis=1)]
-    print(np.shape(A))
 
     VAF_mean_last = 0
     VAF_max_last = 0
@@ -182,8 +181,8 @@ if __name__ == "__main__":
     num = 0
 
     for rank in range(4,1,-1):
-      if rank_determine_helper(A,rank):
-          VAF_mean, VAF_max, H_max, W_max = rank_determine_helper(A,rank)
+      if rank_determine_helper(A, rank, 100):
+          VAF_mean, VAF_max, H_max, W_max = rank_determine_helper(A, rank, 100)
           print("# basis vector is determined to be: ", rank)
           print(" VAF_mean : ",VAF_mean)
           print(" VAF is : ",VAF_max)
@@ -196,6 +195,8 @@ if __name__ == "__main__":
         
       else:
           break
+
+
 
     
 

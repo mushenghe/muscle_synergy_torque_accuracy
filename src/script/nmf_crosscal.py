@@ -23,7 +23,7 @@ def censored_least_squares(W, H, A, M, options=dict(maxiter=20), **kwargs):
             m x n matrix, filled with zeros and ones
     options : dict
             optimization options passed to scipy.optimize.minimize
-    
+
     Note: additional keyword arguments are passed to scipy.optimize.minimize
 
     Returns
@@ -88,15 +88,11 @@ def crossval_nmf(A, rank, p_holdout=.25, tol=1e-4):
     # initial loss
     converged = False
     resid = np.dot(W, H) - A
-    train_hist = [np.sqrt(np.mean((resid[M])**2))]
-    test_hist = [np.sqrt(np.mean((resid[~M])**2))]
+    train_hist = [np.sqrt(np.mean((resid[M]) ** 2))]
+    test_hist = [np.sqrt(np.mean((resid[~M]) ** 2))]
 
     # initial bias
     delta = 0.000001
-
-    # impose nonnegativity
-    bounds_H = [(0, None) for _ in range(H.size)] 
-    bounds_W = [(0, None) for _ in range(W.size)]
   
     # optimize
     while not converged:
@@ -116,3 +112,29 @@ def crossval_nmf(A, rank, p_holdout=.25, tol=1e-4):
         
 
     return W, H, train_hist, test_hist
+
+
+def VAF(W, H, A):
+    """
+
+    Args:
+        W: ndarray, m x rank matrix, activation coefficients obtained from nmf
+        H: ndarray, rank x 8 matrix, basis vectors obtained from nmf
+        A: ndarray, m x 8 matrix, original time-invariant sEMG signal
+
+    Returns:
+        global_VAF: float, VAF calculated for the entire A based on the W&H
+        local_VAF: 1D array, VAF calculated for each muscle (column) in A based on W&H
+    """
+    SSE_matrix = np.square(np.dot(W, H) - A)
+    SST_matrix = np.square(A)
+
+    global_SSE = np.sum(SSE_matrix)
+    global_SST = np.sum(SST_matrix)
+    global_VAF = 100 * (1 - global_SSE / global_SST)
+
+    local_SSE = np.sum(SSE_matrix, axis = 0)
+    local_SST = np.sum(SST_matrix, axis = 0)
+    local_VAF = 100 * (1 - np.divide(local_SSE, local_SST))
+
+    return global_VAF, local_VAF

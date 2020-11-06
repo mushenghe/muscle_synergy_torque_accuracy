@@ -2,13 +2,11 @@ from process_helper import first_last_index,compute_baseline_mean,standard_proce
 from matrix_factorization import multiplication_update
 import numpy as np
 
-# Step1: Load baseline EMG data, select datas when state = 1 and compute the mean for each EMG signal
-# Step2: Extract data for state 4 and 5 from MatchingTask:
-#        For state 4: For the last piece of data whose state is 4, take 500 pieces of data 1 second ago
-#        For state 5: For the last piece of data whose state is 5, take 250 pieces of data 0.25 second ago and 0.25 second later
-# Step3: Subtract the baseline vector from the data vector
-# Step4: Rectify them and compute the mean for all data points, get 2 8x1 vector for each trail
-# Step5: Use NMF to factorize the matrix
+# Step1: Load baseline EMG data, select datas when state = 1 and compute the mean for each EMG signal Step2: Extract
+# data for state 4 and 5 from MatchingTask: For state 4: For the last piece of data whose state is 4, take 500 pieces
+# of data 1 second ago For state 5: For the last piece of data whose state is 5, take 250 pieces of data 0.25 second
+# ago and 0.25 second later Step3: Subtract the baseline vector from the data vector Step4: Rectify them and compute
+# the mean for all data points, get 2 8x1 vector for each trail Step5: Use NMF to factorize the matrix
 
 
 if __name__ == "__main__":

@@ -38,10 +38,10 @@ def compute_baseline_mean(path):
     baseline = np.mean(target_baseline, axis = 0)
     return baseline
 
-def norm_vec(target_vec,max_vec = np.zeros((1,8))):
+def norm_vec(target_vec,max_vec = np.ones(8)):
     # Normalize the amplitude
     target_base_data = np.divide(target_vec,max_vec)
-    return target_vec    
+    return target_base_data    
 
 def standard_process(data_vec, baseline):
     # 1. Subtract the baseline vector from the data vector

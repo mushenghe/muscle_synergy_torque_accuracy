@@ -61,8 +61,8 @@ def multiplication_update(A, k, thresh = 1e-4, init_W=None, init_H=None, print_e
     H = np.array(H)
     resid = np.dot(W, H) - A
 
-    sse_hist = []
-    SSE_hist = []
+    # sse_hist = []
+    # SSE_hist = []
     error_hist = [np.sqrt(np.mean((resid)**2))]
     # Decompose the input matrix
     while not below_thresh:
@@ -84,10 +84,10 @@ def multiplication_update(A, k, thresh = 1e-4, init_W=None, init_H=None, print_e
                 W[i, j] = W[i, j] * AH_T[i, j] / WHH_T[i, j]
         
         resid = np.dot(W, H) - A
-        SE = np.square(resid)
+        # SE = np.square(resid)
 
-        SSE_hist.append(np.sum(SE))  #scaler
-        sse_hist.append(np.sum(SE,axis = 0)) #(1,8)
+        # SSE_hist.append(np.sum(SE))  #scaler
+        # sse_hist.append(np.sum(SE,axis = 0)) #(1,8)
         error_hist.append(np.sqrt(np.mean((resid)**2)))
 
         below_thresh = (error_hist[-2]-error_hist[-1]) < thresh
@@ -96,4 +96,27 @@ def multiplication_update(A, k, thresh = 1e-4, init_W=None, init_H=None, print_e
             frob_norm = np.linalg.norm(A - np.dot(W ,H), 'fro')
             print("iteration " + str(n + 1) + ": " + str(frob_norm))
 
-    return W, H, SSE_hist[-1], sse_hist[-1]
+    return W, H
+
+def VAF(W, H, A):
+    """
+    Args:
+        W: ndarray, m x rank matrix, activation coefficients obtained from nmf
+        H: ndarray, rank x 8 matrix, basis vectors obtained from nmf
+        A: ndarray, m x 8 matrix, original time-invariant sEMG signal
+    Returns:
+        global_VAF: float, VAF calculated for the entire A based on the W&H
+        local_VAF: 1D array, VAF calculated for each muscle (column) in A based on W&H
+    """
+    SSE_matrix = np.square(np.dot(W, H) - A)
+    SST_matrix = np.square(A)
+
+    global_SSE = np.sum(SSE_matrix)
+    global_SST = np.sum(SST_matrix)
+    global_VAF = 100 * (1 - global_SSE / global_SST)
+
+    local_SSE = np.sum(SSE_matrix, axis = 0)
+    local_SST = np.sum(SST_matrix, axis = 0)
+    local_VAF = 100 * (1 - np.divide(local_SSE, local_SST))
+
+    return global_VAF, local_VAF

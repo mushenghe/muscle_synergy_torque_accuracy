@@ -1,5 +1,5 @@
 from process_helper import load_data,first_last_index,norm_vec,compute_baseline_mean,standard_process,process_state4_5,find_max_interval
-from matrix_factorization import multiplication_update
+from matrix_factorization import multiplication_update,VAF
 from plot_multiple import plot_baseline,basisvec_N_plot
 import numpy as np
 from numpy import linalg as LA
@@ -33,6 +33,37 @@ max_pec - max value for Lower trapezius
 max_midtrap - max value for Middle trapezius
 
 '''
+
+def rank_determine_helper(A,repeat_num):
+    '''
+    mean(global VAF)>90% & mean(local VAF) > 80%
+
+    Choose the H corresponding to the highest global VAF:
+    The synergy set corresponding to maximum VAF was considered the representative set for a given number of synergies.
+
+    '''
+    GLOBAL_VAF = []
+    local_vaf = []
+    VAF_max = 0
+    H_max = []
+    W_max = 0
+
+    for repeat in range(repeat_num):
+        W, H = multiplication_update(A,rank)
+        global_VAF,local_VAF = VAF(W,H,A)
+        if global_VAF > VAF_max:
+            VAF_max = global_VAF
+            H_max = H
+            W_max = W
+
+        GLOBAL_VAF.append(global_VAF) #(100,)
+        local_vaf.append(local_VAF) #(100,8)
+        VAF_mean = np.mean(np.array(GLOBAL_VAF))
+    
+    if VAF_mean > 90 and np.all(np.mean(local_VAF,axis = 0)> 80):
+        return VAF_mean, VAF_max, H_max, W_max
+    else:
+        return False
 
 
 if __name__ == "__main__":
@@ -91,6 +122,8 @@ if __name__ == "__main__":
         max_set.append(find_max_interval(DATA_PATH + 'MaxMeasurements/', MAX_TRAILS[i], 10+i, baseline_standing[i], 1000, 5))
     
     '''
+    # plot the maximum set
+
     x = np.arange(8)
     width = 0.2     
     plt.bar(x, baseline_standing, width, label='baseline_standing')
@@ -107,8 +140,8 @@ if __name__ == "__main__":
 
     # Step 3: Extract data for state 4 and 5 from MatchingTask:
     SET_TRAILS = []
-    SEG_STATE4 = []
-    SEG_STATE5 = []
+    SEG_STATE4 = np.array([[]])
+    SEG_STATE5 = np.array([[]])
 
     SET1_TRAILS = ['set01_trial01.txt','set01_trial02.txt','set01_trial03.txt','set01_trial04.txt', 'set01_trial05.txt', \
         'set01_trial06.txt', 'set01_trial07.txt', 'set01_trial08.txt', 'set01_trial09.txt', 'set01_trial10.txt']
@@ -123,44 +156,58 @@ if __name__ == "__main__":
     SET_TRAILS.append(SET3_TRAILS)
 
     matching_path = DATA_PATH + 'MatchingTask/Multi_Multi_El/'
+    # print(SET_TRAILS)
 
     # append all sets of segment 4 and 5 together in SEG_STATE4 and SEG_STATE5
-    # for i in range(3):
-    #     seg_state4,seg_state5 = process_state4_5(matching_path, SET_TRAILS[i], baseline_sitting)
-    #     SEG_STATE4.append(norm_vec(seg_state4, max_set))
-    #     SEG_STATE5.append(norm_vec(seg_state5, max_set))
-    seg_state4,seg_state5 = process_state4_5(matching_path, SET_TRAILS[0], baseline_sitting)
-    # iterate each set for 100 times, compute best H for segment 4 in each set and append
-    # them together in all_H
+    for i in range(3):
+        seg_state4,seg_state5 = process_state4_5(matching_path, SET_TRAILS[i], baseline_sitting)
+        norm_seg4 = norm_vec(seg_state4, max_set)
+        norm_seg5 = norm_vec(seg_state4, max_set)
+        SEG_STATE4 = np.append(SEG_STATE4, norm_seg4, axis = 0)
+        SEG_STATE5 = np.append(SEG_STATE5, norm_seg5, axis = 0)
+        
+
+    # seg_state4,seg_state5 = process_state4_5(matching_path, SET_TRAILS[0], baseline_sitting)
+    # norm_seg4 = norm_vec(seg_state4, max_set)
     
-    A = seg_state4
-    ranks = []
-    SSE = []
-    SST = np.sum(np.square(A))
+    A = SEG_STATE4
+    print(np.shape(A))
 
-    sse = []
-    sst = np.sum(np.square(A),axis = 0)
+    VAF_mean_last = 0
+    VAF_max_last = 0
+    H_max_last = 0
+    W_max_last = 0
+    num = 0
 
-    rank_range = range(2,5)
-    repeat_range = range(100)
+    for rank in range(4,1,-1):
+      if rank_determine_helper(A,rank):
+          VAF_mean, VAF_max, H_max, W_max = rank_determine_helper(A,rank)
+          print("# basis vector is determined to be: ", rank)
+          print(" VAF_mean : ",VAF_mean)
+          print(" VAF is : ",VAF_max)
+      else:
+          continue
 
-    for rank, repeat in itertools.product(rank_range, repeat_range):
-        W, H, last_SSE, last_sse = multiplication_update(A,rank)
-        ranks.append(rank)
-        SSE.append(last_SSE)
-        sse.append(last_sse)
+      if VAF_mean >= VAF_mean_last or (VAF_mean_last - VAF_mean) < 3:
+          VAF_mean_last, vaf_max_last, H_max_last, W_max_last = VAF_mean, VAF_max, H_max, W_max
+          num = rank
+        
+      else:
+          break
 
-    ranks = np.array(ranks)
-    SSE = np.array(SSE) #(300,)
-    sse = np.array(sse) #(300,8)
-
-    for rank in rank_range:
-        VAF = 
     
+
+
+
+
+        
+
+
+
+
 
   
-    
-    # print(np.shape(seg_state4.size))
+
 
 
     '''

@@ -34,7 +34,7 @@ max_midtrap - max value for Middle trapezius
 
 '''
 
-def rank_determine_helper(A,repeat_num):
+def rank_determine_helper(A, rank, repeat_num):
     '''
     mean(global VAF)>90% & mean(local VAF) > 80%
 
@@ -49,8 +49,8 @@ def rank_determine_helper(A,repeat_num):
     W_max = 0
 
     for repeat in range(repeat_num):
-        W, H = multiplication_update(A,rank)
-        global_VAF,local_VAF = VAF(W,H,A)
+        W, H = multiplication_update(A, rank)
+        global_VAF, local_VAF = VAF(W, H, A)
         if global_VAF > VAF_max:
             VAF_max = global_VAF
             H_max = H
@@ -60,7 +60,7 @@ def rank_determine_helper(A,repeat_num):
         local_vaf.append(local_VAF) #(100,8)
         VAF_mean = np.mean(np.array(GLOBAL_VAF))
     
-    if VAF_mean > 90 and np.all(np.mean(local_VAF,axis = 0)> 80):
+    if VAF_mean > 90 and np.all(np.mean(local_VAF, axis=0) > 80):
         return VAF_mean, VAF_max, H_max, W_max
     else:
         return False
@@ -143,16 +143,16 @@ if __name__ == "__main__":
     SEG_STATE4, SEG_STATE5 = np.empty((30, 8)), np.empty((30, 8))
     SEG_STATE4[:], SEG_STATE5[:] = np.nan, np.nan
 
-    SET1_TRAILS = ['set01_trial01.txt','set01_trial02.txt','set01_trial03.txt','set01_trial04.txt', 'set01_trial05.txt', \
-        'set01_trial06.txt', 'set01_trial07.txt', 'set01_trial08.txt', 'set01_trial09.txt', 'set01_trial10.txt']
+    SET1_TRAILS = ['set01_trial01.txt','set01_trial02.txt','set01_trial03.txt','set01_trial04.txt', 'set01_trial05.txt',
+                   'set01_trial06.txt', 'set01_trial07.txt', 'set01_trial08.txt', 'set01_trial09.txt', 'set01_trial10.txt']
     SET_TRAILS.append(SET1_TRAILS)
 
-    SET2_TRAILS = ['set02_trial01.txt','set02_trial02.txt','set02_trial03.txt','set02_trial04.txt', \
-        'set02_trial05.txt', 'set02_trial06.txt', 'set02_trial07.txt', 'set02_trial08.txt', 'set02_trial09.txt', 'set02_trial10.txt']
+    SET2_TRAILS = ['set02_trial01.txt','set02_trial02.txt','set02_trial03.txt','set02_trial04.txt',
+                   'set02_trial05.txt', 'set02_trial06.txt', 'set02_trial07.txt', 'set02_trial08.txt', 'set02_trial09.txt', 'set02_trial10.txt']
     SET_TRAILS.append(SET2_TRAILS)
 
-    SET3_TRAILS = ['set03_trial01.txt','set03_trial02.txt','set03_trial03.txt','set03_trial04.txt', \
-        'set03_trial05.txt', 'set03_trial06.txt', 'set03_trial07.txt', 'set03_trial08.txt', 'set03_trial09.txt', 'set03_trial10.txt']
+    SET3_TRAILS = ['set03_trial01.txt','set03_trial02.txt','set03_trial03.txt','set03_trial04.txt',
+                   'set03_trial05.txt', 'set03_trial06.txt', 'set03_trial07.txt', 'set03_trial08.txt', 'set03_trial09.txt', 'set03_trial10.txt']
     SET_TRAILS.append(SET3_TRAILS)
 
     matching_path = DATA_PATH + 'MatchingTask/Multi_Multi_El/'
@@ -160,10 +160,10 @@ if __name__ == "__main__":
 
     # append all sets of segment 4 and 5 together in SEG_STATE4 and SEG_STATE5
     for i in range(3):
-        seg_state4,seg_state5 = process_state4_5(matching_path, SET_TRAILS[i], baseline_sitting)
+        seg_state4, seg_state5 = process_state4_5(matching_path, SET_TRAILS[i], baseline_sitting)
         norm_seg4 = norm_vec(seg_state4, max_set)
         norm_seg5 = norm_vec(seg_state5, max_set)
-        SEG_STATE4[i * 10:i * 10+norm_seg4.shape[0], :] = norm_seg4
+        SEG_STATE4[i * 10:i * 10 + norm_seg4.shape[0], :] = norm_seg4
         SEG_STATE5[i * 10:i * 10 + norm_seg5.shape[0], :] = norm_seg5
         # SEG_STATE4 = np.append(SEG_STATE4, norm_seg4)
         # SEG_STATE5 = np.append(SEG_STATE5, norm_seg5)
@@ -182,12 +182,13 @@ if __name__ == "__main__":
     num = 0
 
     for rank in range(4,1,-1):
-      if rank_determine_helper(A,rank):
-          VAF_mean, VAF_max, H_max, W_max = rank_determine_helper(A,rank)
+      if rank_determine_helper(A, rank, 100):
+          VAF_mean, VAF_max, H_max, W_max = rank_determine_helper(A, rank, 100)
           print("# basis vector is determined to be: ", rank)
           print(" VAF_mean : ",VAF_mean)
           print(" VAF is : ",VAF_max)
       else:
+          print("did not find basis vector that fit the criteria")
           continue
 
       if VAF_mean >= VAF_mean_last or (VAF_mean_last - VAF_mean) < 3:

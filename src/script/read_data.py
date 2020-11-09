@@ -111,16 +111,65 @@ def matching_trial_data(filepath, baseline, max_data):
             max_data: 1d numpy array (size=10), maximum torque and EMG
 
         Returns:
-            max_data: 1d numpy array (size=10), maximum torque + maximum EMG
-                    index mapping as follows: 0-ElTorque, 1-ShTorque, 2-Bicep, 3-Tricep, 4-AntDel, 5-MedDel,
-                                              6-PosDel, 7-Pec, 8-LowerTrap, 9-MidTrap
+            ref_data, match_data: a 12-column dataframe
+                    columns mapped as follows: 0-ElTorque, 1-ShTorque, 2-Bicep, 3-Tricep, 4-AntDel, 5-MedDel,
+                                              6-PosDel, 7-Pec, 8-LowerTrap, 9-MidTrap, 10-Task, 11-TrialNr
         """
     # first, map the select_Trial code to task
+    col_name = ["ElTorque", "ShTorque",
+                "Bicep", "Tricep", "AntDel", "MedDel",
+                "PosDel", "Pec", "LowerTrap", "MidTrap",
+                "Task", "TrialNr"]
     task_dict = {1: '10%', 2: '30%', 3: '50%'}
-    stat_file = glob.glob(filepath + '/MatchingTask/*/trialDat_set0?_trial0?.txt')[0]
+    set_total_ref = np.zeros((30, 12))
+    set_total_match = np.zeros((30, 12))
+    for set_idx in range(3):
+        stat_file = glob.glob(filepath + '/MatchingTask/*/trialDat_set0' + str(set_idx+1) + '_trial0?.txt')[0]
+        stat_data = np.loadtxt(stat_file)
+        task_code = stat_data[6]
 
+        # grab all the trials for this set
+        trial_list = glob.glob(filepath + '/MatchingTask/*/trialDat_set0' + str(set_idx+1) + '_trial??.txt')
+        for trial in trial_list:
+            trial_nr = int(trial[-6:-4])
+            trial_idx = (trial_nr - 1) + set_idx*10
+            trial_data = np.loadtxt(trial)
+            # columns of trial data is as follows: 0-"simTime", 1-"State", 2-"Elbow_Torque", 3-"Shoulder_Torque",
+            #                  4-"EFx", 5-"EFy", 6-"EFz", 7-"EMx", 8-"EMy", 9-"EMz",
+            #                  10-"Bicep", 11-"Tricep", 12-"AntDel", 13-"MedDel",
+            #                  14-"PosDel", 15-"Pec", 16-"LowerTrap", 17-"MidTrap"]
+            relativeTime = trial_data[:, 0] - trial_data[0, 0]  # obtain a numpy array of relative time
+            # grab the start time of the reference phase:
+            # make sure there is a reference phase
+            if np.any(trial_data[:, 1] == 4):
+                ref_idx = np.argwhere(trial_data[:, 1 == 4])
+                ref_idx_s = ref_idx.max() - 999
+                ref_idx_e = ref_idx.max() - 498
+                ref_data = trial_data[ref_idx_s:ref_idx_e, :]
+                ref_EMG = np.absolute(ref_data[:, 10:] - baseline).mean(axis=0)
+                ref_EMG_norm = ref_EMG / max_data[2:]
+                ref_torque = ref_data[:, 2:4].mean()
+                set_total_ref[trial_idx, :] = np.concatenate([ref_torque, ref_EMG_norm, [stat_data[6], trial_nr]])
+            else:
+                continue
+            if np.any(trial_data[:, 1] == 5) and (np.argwhere(trial_data[:, 1]==20).max() < np.argwhere(trial_data[:, 1]==5).max()):
+                match_idx = np.argwhere(trial_data[:, 1 == 5])
+                match_idx_s = match_idx.max() - 1249
+                match_idx_e = match_idx.max() - 748
+                match_data = trial_data[match_idx_s:match_idx_e, :]
+                match_EMG = np.absolute(match_data[:, 10:] - baseline).mean(axis=0)
+                match_EMG_norm = match_EMG / max_data[2:]
+                match_torque = match_data[:, 2:4].mean()
+                set_total_match[trial_idx, :] = np.concatenate([match_torque, match_EMG_norm, [stat_data[6], trial_nr]])
+            else:
+                continue
 
-    # return ref_data, match_data
+    ref_data_all = pd.DataFrame(set_total_ref, columns=col_name)
+    match_data_all = pd.DataFrame(set_total_match, columns=col_name)
+    ref_data = ref_data_all.replace(to_replace={"Task": task_dict})
+    match_data = match_data_all.replace(to_replace={"Task": task_dict})
+
+    return ref_data, match_data
 
 
 def get_demo_info(filepath):

@@ -44,12 +44,16 @@ def rank_determine_helper(A, rank, repeat_num):
     '''
     GLOBAL_VAF = []
     local_vaf = []
+    train_err = []
+    test_err = []
     VAF_max = 0
     H_max = []
     W_max = 0
 
     for repeat in range(repeat_num):
-        W, H = multiplication_update(A,rank)
+        W, H, train, test = crossval_nmf(np.array(A), rank)
+        train_err.append(train[-1])
+        test_err.append(test[-1])
         global_VAF,local_VAF = VAF(W,H,A)
         if global_VAF > VAF_max:
             VAF_max = global_VAF
@@ -59,9 +63,12 @@ def rank_determine_helper(A, rank, repeat_num):
         GLOBAL_VAF.append(global_VAF) #(100,)
         local_vaf.append(local_VAF) #(100,8)
         VAF_mean = np.mean(np.array(GLOBAL_VAF))
+
+    print("VAF_max is: ",VAF_max)
+    print("VAF_mean is: ",VAF_mean)
     
     if VAF_mean > 90 and np.all(np.mean(local_VAF,axis = 0)> 80):
-        return VAF_mean, VAF_max, H_max, W_max
+        return VAF_mean, VAF_max, H_max, W_max, train_err, test_err
     else:
         return False
 
@@ -70,7 +77,7 @@ if __name__ == "__main__":
 
     DATA_PATH = '/home/mushenghe/Desktop/final_project/data/Oct23/' 
 
-    # Step1: Find two baseline vectors, one for sitting one for standing
+    # Step 1: Find two baseline vectors, one for sitting one for standing
     baseline1_sit = compute_baseline_mean(DATA_PATH + 'BaselineEMG_sitting/set01_trial01.txt')
     baseline2_sit = compute_baseline_mean(DATA_PATH + 'BaselineEMG_sitting/set01_trial01.txt')
     baseline_sitting = np.mean(np.array([baseline1_sit, baseline2_sit]), axis = 0)
@@ -79,7 +86,7 @@ if __name__ == "__main__":
     baseline2_sta = compute_baseline_mean(DATA_PATH + 'BaselineEMG/set01_trial01.txt')
     baseline_standing = np.mean(np.array([baseline1_sta, baseline2_sta]), axis = 0)
 
-    # Step2: Use moving average to find the maximum for each EMGs:
+    # Step 2: Use moving average to find the maximum for each EMGs:
     # Note that the baseline for bicep and tricep is baseline_sitting andthat for other muscles is baseline_standing
 
     MAX_TRAILS = []
@@ -138,10 +145,9 @@ if __name__ == "__main__":
     
     '''
 
-    # Step 3: Extract data for state 4 and 5 from MatchingTask:
+    # Step 3: Extract data for state 4 and 5 from all MatchingTask sets:
+
     SET_TRAILS = []
-    SEG_STATE4, SEG_STATE5 = np.empty((30, 8)), np.empty((30, 8))
-    SEG_STATE4[:], SEG_STATE5[:] = np.nan, np.nan
 
     SET1_TRAILS = ['set01_trial01.txt','set01_trial02.txt','set01_trial03.txt','set01_trial04.txt', 'set01_trial05.txt', \
         'set01_trial06.txt', 'set01_trial07.txt', 'set01_trial08.txt', 'set01_trial09.txt', 'set01_trial10.txt']
@@ -156,23 +162,34 @@ if __name__ == "__main__":
     SET_TRAILS.append(SET3_TRAILS)
 
     matching_path = DATA_PATH + 'MatchingTask/Multi_Multi_El/'
-    # print(SET_TRAILS)
 
-    # append all sets of segment 4 and 5 together in SEG_STATE4 and SEG_STATE5
+    # Step 4: Subtract the baseline mean from the data vector and rectify them
+    # Bootstrap data
+
+    bootstrap = 20
+    '''
+
+    concatenate all sets together
+
+    SEG_STATE4, SEG_STATE5 = np.empty((30, 8)), np.empty((30, 8))
+    SEG_STATE4[:], SEG_STATE5[:] = np.nan, np.nan
+
     for i in range(3):
-        seg_state4,seg_state5 = process_state4_5(matching_path, SET_TRAILS[i], baseline_sitting)
+        seg_state4,seg_state5 = process_state4_5(matching_path, SET_TRAILS[i], baseline_sitting, bootstrap)
         norm_seg4 = norm_vec(seg_state4, max_set)
-        norm_seg5 = norm_vec(seg_state5, max_set)
+        norm_seg5 = norm_vec(seg_state5, max_set) # 200*8
+        # append all sets of segment 4 and 5 together in SEG_STATE4 and SEG_STATE5
         SEG_STATE4[i * 10:i * 10+norm_seg4.shape[0], :] = norm_seg4
         SEG_STATE5[i * 10:i * 10 + norm_seg5.shape[0], :] = norm_seg5
-        # SEG_STATE4 = np.append(SEG_STATE4, norm_seg4)
-        # SEG_STATE5 = np.append(SEG_STATE5, norm_seg5)
-        
-
-    # seg_state4,seg_state5 = process_state4_5(matching_path, SET_TRAILS[0], baseline_sitting)
-    # norm_seg4 = norm_vec(seg_state4, max_set)
+   
     
     A = SEG_STATE4[~np.isnan(SEG_STATE4).any(axis=1)]
+    '''
+    seg_state4,seg_state5 = process_state4_5(matching_path, SET_TRAILS[0], baseline_sitting, bootstrap)
+    norm_seg4 = norm_vec(seg_state4, max_set)
+    norm_seg5 = norm_vec(seg_state5, max_set) 
+    A = norm_seg4[~np.isnan(norm_seg4).any(axis=1)] # 200 * 8 
+
 
     VAF_mean_last = 0
     VAF_max_last = 0
@@ -182,10 +199,13 @@ if __name__ == "__main__":
 
     for rank in range(4,1,-1):
       if rank_determine_helper(A, rank, 100):
-          VAF_mean, VAF_max, H_max, W_max = rank_determine_helper(A, rank, 100)
+          print("199")
+          VAF_mean, VAF_max, H_max, W_max, train_err, test_err = rank_determine_helper(A, rank, 100)
           print("# basis vector is determined to be: ", rank)
           print(" VAF_mean : ",VAF_mean)
           print(" VAF is : ",VAF_max)
+          print(" train_err shape is : ",train_err.shape)
+          print(" test_err is shape is: ", test_err.shape)
       else:
           continue
 

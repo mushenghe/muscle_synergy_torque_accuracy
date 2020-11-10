@@ -55,11 +55,11 @@ def standard_process(data_vec, baseline, bootstrap):
     for index in range(bootstrap):
         Mask = list(rand(rows) > 0.15)
         M = np.array([[np.repeat(Mask[i], columns)] for i in range(rows)]).reshape(rows,columns)
-        # print("bootstrap i is", index)
-        # print("The shape of M is: " ,M.shape)
-        # print("The shape of subtractbase_data_vec is: " ,subtractbase_data_vec.shape)
         target_data = subtractbase_data_vec[M].reshape(Mask.count(True),columns)
         bootstrap_data[index : index + 1, :] = np.mean(np.absolute(target_data),axis = 0)
+
+    # bootstrap_data = np.mean(np.absolute(subtractbase_data_vec),axis = 0)
+    # return bootstrap_data
 
     return bootstrap_data[~np.isnan(bootstrap_data).any(axis=1)]
 

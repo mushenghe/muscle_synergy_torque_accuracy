@@ -4,7 +4,7 @@ import numpy as np
 matrix factorization algorithms
 '''
 
-def multiplication_update(A, k, thresh=0.0005, num_iter=100, init_W=None, init_H=None, print_enabled=False):
+def multiplication_update(A, k, thresh=1e-4, num_iter=100, init_W=None, init_H=None, print_enabled=False):
 
     '''
     Run multiplicative updates to perform nonnegative matrix factorization on A.
@@ -35,7 +35,7 @@ def multiplication_update(A, k, thresh=0.0005, num_iter=100, init_W=None, init_H
             - k by n matrix where k = dim
     '''
 
-    #print('Applying multiplicative updates on the input matrix...')
+    # print('Applying multiplicative updates on the input matrix...')
 
     if print_enabled:
         print('---------------------------------------------------------------------')

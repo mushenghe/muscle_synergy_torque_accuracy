@@ -1,5 +1,5 @@
 import numpy as np
-
+from numpy.random import randn, rand
 '''
 helper functions for signal processing
 '''
@@ -43,20 +43,32 @@ def norm_vec(target_vec,max_vec = np.ones(8)):
     target_base_data = np.divide(target_vec,max_vec)
     return target_base_data    
 
-def standard_process(data_vec, baseline):
+def standard_process(data_vec, baseline, bootstrap):
     # 1. Subtract the baseline vector from the data vector
     # 2. Rectify it and compute the mean for all data points
 
     subtractbase_data_vec = np.array(data_vec) - np.array(baseline)
-    target_base_data = np.mean(np.absolute(subtractbase_data_vec),axis = 0)
-    
-    return target_base_data    
+    rows, columns = subtractbase_data_vec.shape
+    bootstrap_data = np.empty((bootstrap,8))
+    bootstrap_data[:] = np.nan
 
-def process_state4_5(path,SET_TRAILS,baseline):
+    for index in range(bootstrap):
+        Mask = list(rand(rows) > 0.15)
+        M = np.array([[np.repeat(Mask[i], columns)] for i in range(rows)]).reshape(rows,columns)
+        target_data = subtractbase_data_vec[M].reshape(Mask.count(True),columns)
+        bootstrap_data[index : index + 1, :] = np.mean(np.absolute(target_data),axis = 0)
+
+    # bootstrap_data = np.mean(np.absolute(subtractbase_data_vec),axis = 0)
+    # return bootstrap_data
+
+    return bootstrap_data[~np.isnan(bootstrap_data).any(axis=1)]
+
+def process_state4_5(path,SET_TRAILS,baseline,bootstrap):
     # Step 2 Extract data for state 4 and 5 from MatchingTask:
 
-    SEG_STATE4 = []
-    SEG_STATE5 = []
+    SEG_STATE4, SEG_STATE5 = np.empty((200, 8)), np.empty((200, 8))
+    SEG_STATE4[:], SEG_STATE5[:] = np.nan, np.nan
+
     for trail_index in range (0,len(SET_TRAILS)):
         trail_data = np.loadtxt(path + SET_TRAILS[trail_index])
         rows,columns = trail_data.shape
@@ -70,15 +82,15 @@ def process_state4_5(path,SET_TRAILS,baseline):
             # index of the last piece of data whose state is 4/5 in the reversed array
             indexof_lpf4 = first_last_index(indexof_lpl4)
             indexof_lpf5 = first_last_index(indexof_lpl5)
-
+            # extract 500 datapoints from the reversed data
+            # size of state4_vec: 500 X 8
             state4_vec = reversed_data[indexof_lpf4 + 1000:indexof_lpf4 + 1500,10:18]
             state5_vec = reversed_data[indexof_lpf5 - 250:indexof_lpf5 + 250,10:18]
+            seg_state4 = standard_process(state4_vec, baseline, bootstrap) #20*8
+            seg_state5 = standard_process(state5_vec, baseline, bootstrap)
 
-            seg_state4 = standard_process(state4_vec,baseline)
-            seg_state5 = standard_process(state5_vec,baseline)
-
-            SEG_STATE4.append(seg_state4)
-            SEG_STATE5.append(seg_state5)
+            SEG_STATE4[trail_index * seg_state4.shape[0] : (trail_index + 1) * seg_state4.shape[0], :] = seg_state4 # 200 * 8
+            SEG_STATE5[trail_index * seg_state5.shape[0] : (trail_index + 1) * seg_state5.shape[0], :] = seg_state5
 
         else:
             pass

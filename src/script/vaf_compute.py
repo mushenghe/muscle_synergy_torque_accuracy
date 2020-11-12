@@ -66,17 +66,17 @@ def rank_determine_helper(A, rank, repeat_num):
 
     # print("VAF_max is: ",VAF_max)
     # print("VAF_mean is: ",VAF_mean)
-    
+
     # if VAF_mean > 90 and np.all(np.mean(local_VAF,axis = 0)> 80):
     #     return VAF_mean, VAF_max, H_max, W_max, train_err, test_err
     # else:
     #     return False
 
     return VAF_mean, VAF_max, H_max, W_max, train_err, test_err
-    
+
 if __name__ == "__main__":
 
-    DATA_PATH = '/home/mushenghe/Desktop/final_project/data/Oct23/' 
+    DATA_PATH = '/home/mushenghe/Desktop/final_project/data/Oct23/'
 
     # Step 1: Find two baseline vectors, one for sitting one for standing
     baseline1_sit = compute_baseline_mean(DATA_PATH + 'BaselineEMG_sitting/set01_trial01.txt')
@@ -146,9 +146,10 @@ if __name__ == "__main__":
     
     '''
 
-    # Step 3: Extract data for state 4 and 5 from all MatchingTask sets:
-
+    # Step 3: Extract data for state 4 and 5 from MatchingTask:
     SET_TRAILS = []
+    SEG_STATE4, SEG_STATE5 = np.empty((30, 8)), np.empty((30, 8))
+    SEG_STATE4[:], SEG_STATE5[:] = np.nan, np.nan
 
     SET1_TRAILS = ['set01_trial01.txt','set01_trial02.txt','set01_trial03.txt','set01_trial04.txt', 'set01_trial05.txt', \
         'set01_trial06.txt', 'set01_trial07.txt', 'set01_trial08.txt', 'set01_trial09.txt', 'set01_trial10.txt']
@@ -163,48 +164,34 @@ if __name__ == "__main__":
     SET_TRAILS.append(SET3_TRAILS)
 
     matching_path = DATA_PATH + 'MatchingTask/Multi_Multi_El/'
+    # print(SET_TRAILS)
 
-    # Step 4: Subtract the baseline mean from the data vector and rectify them
-    # Bootstrap data
-
-    bootstrap = 20
-
-    # concatenate all sets together
-
-    SEG_STATE4, SEG_STATE5 = np.empty((600, 8)), np.empty((600, 8))
-    SEG_STATE4[:], SEG_STATE5[:] = np.nan, np.nan
-
+    # append all sets of segment 4 and 5 together in SEG_STATE4 and SEG_STATE5
     for i in range(3):
-        seg_state4,seg_state5 = process_state4_5(matching_path, SET_TRAILS[i], baseline_sitting, bootstrap)
+        seg_state4,seg_state5 = process_state4_5(matching_path, SET_TRAILS[i], baseline_sitting)
         norm_seg4 = norm_vec(seg_state4, max_set)
-        norm_seg5 = norm_vec(seg_state5, max_set) # 200*8
-        # append all sets of segment 4 and 5 together in SEG_STATE4 and SEG_STATE5
-        SEG_STATE4[i * norm_seg4.shape[0] : (i + 1) * norm_seg4.shape[0], :] = norm_seg4
-        SEG_STATE5[i * norm_seg5.shape[0] : (i + 1) * norm_seg5.shape[0], :] = norm_seg5
-   
+        norm_seg5 = norm_vec(seg_state5, max_set)
+        SEG_STATE4[i * 10:i * 10+norm_seg4.shape[0], :] = norm_seg4
+        SEG_STATE5[i * 10:i * 10 + norm_seg5.shape[0], :] = norm_seg5
+        # SEG_STATE4 = np.append(SEG_STATE4, norm_seg4)
+        # SEG_STATE5 = np.append(SEG_STATE5, norm_seg5)
+        
+
+    # seg_state4,seg_state5 = process_state4_5(matching_path, SET_TRAILS[0], baseline_sitting)
+    # norm_seg4 = norm_vec(seg_state4, max_set)
     
     A = SEG_STATE4[~np.isnan(SEG_STATE4).any(axis=1)]
-    
-    
-    # # only consider one set: 
-
-    # seg_state4,seg_state5 = process_state4_5(matching_path, SET_TRAILS[0], baseline_sitting, bootstrap)
-    # norm_seg4 = norm_vec(seg_state4, max_set)
-    # norm_seg5 = norm_vec(seg_state5, max_set) 
-    # A = norm_seg4[~np.isnan(norm_seg4).any(axis=1)] # 200 * 8 
-    
-
+    print(np.shape(A))
 
     VAF_mean_last = 0
     VAF_max_last = 0
     H_max_last = 0
     W_max_last = 0
     num = 0
-    
+
     for rank in range(4,1,-1):
-      print('rank is: ',rank)
-      if rank_determine_helper(A, rank, 100):
-          VAF_mean, VAF_max, H_max, W_max, train_err, test_err = rank_determine_helper(A, rank, 100)
+      if rank_determine_helper(A,rank):
+          VAF_mean, VAF_max, H_max, W_max = rank_determine_helper(A,rank)
           print("# basis vector is determined to be: ", rank)
           print(" VAF_mean : ",VAF_mean)
           print(" VAF is : ",VAF_max)
@@ -220,53 +207,16 @@ if __name__ == "__main__":
 
     
 
-    '''
-    # plot the RMSE of training set and validation set:
 
-    train_error = []
-    test_error = []
-    for rank in range(2,5):
-      VAF_mean, VAF_max, H_max, W_max, train, test = rank_determine_helper(A, rank, 100)
-      train_error.append(train)
-      test_error.append(test)
 
-    ranks = np.array([2,3,4])
-    train_err = np.array(train_error)
-    test_err = np.array(test_error)
+
+        
+
+
+
+
+
   
-
-    data_a = train_error
-    data_b = test_error
-
-    ticks = ['2', '3', '4']
-    def set_box_color(bp, color):
-        plt.setp(bp['boxes'], color=color)
-        plt.setp(bp['whiskers'], color=color)
-        plt.setp(bp['caps'], color=color)
-        plt.setp(bp['medians'], color=color)
-
-    plt.figure()
-
-    bpl = plt.boxplot(data_a, positions=np.array(xrange(len(data_a)))*2.0-0.4, sym='', widths=0.6)
-    bpr = plt.boxplot(data_b, positions=np.array(xrange(len(data_b)))*2.0+0.4, sym='', widths=0.6)
-    set_box_color(bpl, '#D7191C') # colors are from http://colorbrewer2.org/
-    set_box_color(bpr, '#2C7BB6')
-
-    # draw temporary red and blue lines and use them to create a legend
-    plt.plot([], c='#D7191C', label='training_error')
-    plt.plot([], c='#2C7BB6', label='testing_error')
-    plt.legend()
-
-    plt.xticks(xrange(0, len(ticks) * 2, 2), ticks)
-    plt.xlim(-2, len(ticks)*2)
-    plt.ylim(0, 8)
-    plt.tight_layout()
-    plt.savefig('nmf_compare.png')
-    plt.show()
-    '''
-
-
-
 
 
 

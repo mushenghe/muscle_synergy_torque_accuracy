@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import glob
-from script.process_helper import *
+from process_helper import *
 import datetime
 import matplotlib.pyplot as plt
 
@@ -21,9 +21,12 @@ def read_data(path, both_Arm=False):
     """
     # When bootstrap methods are ready,
     # could return two more dataframe containing bootstrapped ref and match EMG torque data
-
+    
+    print('in read data')
     folders = glob.glob(
         path + '[c,s][0-9][0-9]/')  # returns all the folders in directory with format of 's%d' and 'c%d'
+    print('28')
+    print('folders',folders)
     if both_Arm:
         arms = ["Right", "Left"]
     else:
@@ -39,12 +42,15 @@ def read_data(path, both_Arm=False):
     demo_total = pd.DataFrame()
 
     for f in folders:  # based on the list of folders, step into each folder
+        print('f',f)
         sname = f[-4:-1]
         for a in arms:
+            print('a',a)
             # Obtain the baseline
             baseline_path = f + a + '/BaselineEMG/set01_trial01.txt'
             baseline_sit_path = f + a + '/BaselineEMG_sitting/set01_trial01.txt'
             baseline = compute_baseline_mean(baseline_path)
+            print('baseline',baseline)
             baseline_sit = compute_baseline_mean(baseline_sit_path)  # baseline data for the matching trials
             baseline_maximum = baseline
             baseline_maximum[:1] = baseline_sit[:1]  # baseline data for maximum
@@ -220,7 +226,7 @@ def get_demo_info(filepath):
 
 
 if __name__ == "__main__":
-    ref_total, match_total, demo_total = read_data('/Users/ncr5341/Box Sync/', both_Arm=False)
+    ref_total, match_total, demo_total = read_data('/home/mushenghe/Desktop/final_project/data/', both_Arm=False)
     ref_total.to_csv('referenceData_111120.csv', index=False)
     match_total.to_csv('matchData_111120.csv', index=False)
     demo_total.to_csv('demoInfo_111120.csv', index=False)

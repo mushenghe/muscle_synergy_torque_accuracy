@@ -79,7 +79,7 @@ def rank_determine_helper(A, rank, repeat_num):
     
 if __name__ == "__main__":
 
-    DATA_PATH = '/home/mushenghe/Desktop/final_project/data/Oct23/' 
+    DATA_PATH = '/home/mushenghe/Desktop/final_project/data/Oct23/'
 
     # Step 1: Find two baseline vectors, one for sitting one for standing
     baseline1_sit = compute_baseline_mean(DATA_PATH + 'BaselineEMG_sitting/set01_trial01.txt')
@@ -149,9 +149,10 @@ if __name__ == "__main__":
     
     '''
 
-    # Step 3: Extract data for state 4 and 5 from all MatchingTask sets:
-
+    # Step 3: Extract data for state 4 and 5 from MatchingTask:
     SET_TRAILS = []
+    SEG_STATE4, SEG_STATE5 = np.empty((30, 8)), np.empty((30, 8))
+    SEG_STATE4[:], SEG_STATE5[:] = np.nan, np.nan
 
     SET1_TRAILS = ['set01_trial01.txt','set01_trial02.txt','set01_trial03.txt','set01_trial04.txt', 'set01_trial05.txt', \
         'set01_trial06.txt', 'set01_trial07.txt', 'set01_trial08.txt', 'set01_trial09.txt', 'set01_trial10.txt']
@@ -166,6 +167,7 @@ if __name__ == "__main__":
     SET_TRAILS.append(SET3_TRAILS)
 
     matching_path = DATA_PATH + 'MatchingTask/Multi_Multi_El/'
+    # print(SET_TRAILS)
 
     # Step 4: Subtract the baseline mean from the data vector and rectify them
     # Bootstrap data
@@ -192,7 +194,7 @@ if __name__ == "__main__":
 
     # # only consider one set: 
 
-    # seg_state4,seg_state5 = process_state4_5(matching_path, SET_TRAILS[0], baseline_sitting, bootstrap)
+    # seg_state4,seg_state5 = process_state4_5(matching_path, SET_TRAILS[0], baseline_sitting)
     # norm_seg4 = norm_vec(seg_state4, max_set)
     # norm_seg5 = norm_vec(seg_state5, max_set) 
     # A = norm_seg4[~np.isnan(norm_seg4).any(axis=1)] # 200 * 8 

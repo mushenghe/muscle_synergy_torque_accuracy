@@ -64,15 +64,18 @@ def rank_determine_helper(A, rank, repeat_num):
         local_vaf.append(local_VAF) #(100,8)
         VAF_mean = np.mean(np.array(GLOBAL_VAF))
 
+    # modify
+
     # print("VAF_max is: ",VAF_max)
     # print("VAF_mean is: ",VAF_mean)
     
-    # if VAF_mean > 90 and np.all(np.mean(local_VAF,axis = 0)> 80):
-    #     return VAF_mean, VAF_max, H_max, W_max, train_err, test_err
-    # else:
-    #     return False
+    if VAF_mean > 90 and np.all(np.mean(local_VAF,axis = 0)> 80):
+        return VAF_mean, VAF_max, H_max, W_max, train_err, test_err
+    else:
+        return False
 
     return VAF_mean, VAF_max, H_max, W_max, train_err, test_err
+
     
 if __name__ == "__main__":
 
@@ -169,59 +172,136 @@ if __name__ == "__main__":
 
     bootstrap = 20
 
-    # concatenate all sets together
+    # # concatenate all sets together
 
-    SEG_STATE4, SEG_STATE5 = np.empty((600, 8)), np.empty((600, 8))
-    SEG_STATE4[:], SEG_STATE5[:] = np.nan, np.nan
+    # SEG_STATE4, SEG_STATE5 = np.empty((600, 8)), np.empty((600, 8))
+    # SEG_STATE4[:], SEG_STATE5[:] = np.nan, np.nan
 
-    for i in range(3):
-        seg_state4,seg_state5 = process_state4_5(matching_path, SET_TRAILS[i], baseline_sitting, bootstrap)
-        norm_seg4 = norm_vec(seg_state4, max_set)
-        norm_seg5 = norm_vec(seg_state5, max_set) # 200*8
-        # append all sets of segment 4 and 5 together in SEG_STATE4 and SEG_STATE5
-        SEG_STATE4[i * norm_seg4.shape[0] : (i + 1) * norm_seg4.shape[0], :] = norm_seg4
-        SEG_STATE5[i * norm_seg5.shape[0] : (i + 1) * norm_seg5.shape[0], :] = norm_seg5
+    # for i in range(3):
+    #     seg_state4,seg_state5 = process_state4_5(matching_path, SET_TRAILS[i], baseline_sitting, bootstrap)
+    #     norm_seg4 = norm_vec(seg_state4, max_set)
+    #     norm_seg5 = norm_vec(seg_state5, max_set) # 200*8
+    #     # append all sets of segment 4 and 5 together in SEG_STATE4 and SEG_STATE5
+    #     SEG_STATE4[i * norm_seg4.shape[0] : (i + 1) * norm_seg4.shape[0], :] = norm_seg4
+    #     SEG_STATE5[i * norm_seg5.shape[0] : (i + 1) * norm_seg5.shape[0], :] = norm_seg5
    
+    # # modify A
+    # A = SEG_STATE4[~np.isnan(SEG_STATE4).any(axis=1)]
     
-    A = SEG_STATE4[~np.isnan(SEG_STATE4).any(axis=1)]
-    
-    
+    # modify
+
     # # only consider one set: 
 
     # seg_state4,seg_state5 = process_state4_5(matching_path, SET_TRAILS[0], baseline_sitting, bootstrap)
     # norm_seg4 = norm_vec(seg_state4, max_set)
     # norm_seg5 = norm_vec(seg_state5, max_set) 
     # A = norm_seg4[~np.isnan(norm_seg4).any(axis=1)] # 200 * 8 
+
     
+    # Append the max H and W together for all sets
+    all_H = []
+    for i in range(3):
+        seg_state4,seg_state5 = process_state4_5(matching_path, SET_TRAILS[i], baseline_sitting, bootstrap)
+        norm_seg4 = norm_vec(seg_state4, max_set)
+        norm_seg5 = norm_vec(seg_state5, max_set) 
+        A = norm_seg4[~np.isnan(norm_seg4).any(axis=1)] # 200 * 8 
 
 
-    VAF_mean_last = 0
-    VAF_max_last = 0
-    H_max_last = 0
-    W_max_last = 0
-    num = 0
+        VAF_mean, VAF_max, H_max, W_max, train, test = rank_determine_helper(A, 4, 100)
+        magnitute_0 = LA.norm(H_max[0])
+        magnitute_1 = LA.norm(H_max[1])
+        magnitute_2 = LA.norm(H_max[2])
+        magnitute_3 = LA.norm(H_max[3])
+
+        all_H.append(H_max[0]/magnitute_0)
+        all_H.append(H_max[1]/magnitute_1)
+        all_H.append(H_max[2]/magnitute_2)
+        all_H.append(H_max[3]/magnitute_3)
+
+        W_maxT = W_max.T
+        W_maxT_C0 = W_maxT[0]*magnitute_0
+        W_maxT_C1 = W_maxT[1]*magnitute_1
+        W_maxT_C2 = W_maxT[2]*magnitute_2
+        W_maxT_C3 = W_maxT[3]*magnitute_3
+
+        W = np.vstack((W_maxT_C0,W_maxT_C1,W_maxT_C2,W_maxT_C3))
+        print('W for set: ',i)
+        print(W.T)
+   
+
+    # # modify
+
+    # VAF_mean_last = 0
+    # VAF_max_last = 0
+    # H_max_last = 0
+    # W_max_last = 0
+    # num = 0
     
-    for rank in range(4,1,-1):
-      print('rank is: ',rank)
-      if rank_determine_helper(A, rank, 100):
-          VAF_mean, VAF_max, H_max, W_max, train_err, test_err = rank_determine_helper(A, rank, 100)
-          print("# basis vector is determined to be: ", rank)
-          print(" VAF_mean : ",VAF_mean)
-          print(" VAF is : ",VAF_max)
-      else:
-          continue
+    # for rank in range(4,1,-1):
+    #   print('rank is: ',rank)
+    #   if rank_determine_helper(A, rank, 100):
+    #       VAF_mean, VAF_max, H_max, W_max, train_err, test_err = rank_determine_helper(A, rank, 100)
+    #       print("# basis vector is determined to be: ", rank)
+    #   else:
+    #       continue
 
-      if VAF_mean >= VAF_mean_last or (VAF_mean_last - VAF_mean) < 3:
-          VAF_mean_last, vaf_max_last, H_max_last, W_max_last = VAF_mean, VAF_max, H_max, W_max
-          num = rank
+    #   if VAF_mean >= VAF_mean_last or (VAF_mean_last - VAF_mean) < 3:
+    #       VAF_mean_last, vaf_max_last, H_max_last, W_max_last = VAF_mean, VAF_max, H_max, W_max
+    #       num = rank
         
-      else:
-          break
+    #   else:
+    #       break
+    
+    
+    
+    EMGs = 8
+    width = 0.5  
+    ind = np.arange(EMGs) 
+
+    plt.title('Muscle synergy for set1')   
+    for i in range(1,5):
+        plt.subplot(2,2,i)
+        plt.bar(ind, all_H[i-1], width,label='basis_vec '+ str(i))
+        plt.ylabel('Normalized Activation Strength for basis vector' + str(i) + ' of set 1')
+        plt.xticks(rotation=45, ha='right')
+        plt.xticks(ind, ('Bicep','Tricep lateral','Anterior deltoid','Medial deltoid','Posterior deltoid','Pectoralis major','Lower trapezius','Middle trapezius'))
+        plt.legend(loc='best')
+    plt.title('Normalized Muscle synergy for set 1')
+
+    plt.savefig('/home/mushenghe/Desktop/final_project/muscle_synergy/src/image/Oct23/bootstrap_#2_set1.png')
+    plt.show()
+
+    for i in range(5,9):
+        plt.subplot(2,2,i-4)
+        plt.bar(ind, all_H[i-1], width,label='basis_vec '+ str(i-4))
+        plt.ylabel('Normalized Activation Strength for basis vector' + str(i-4) + ' of set 2')
+        plt.xticks(rotation=45, ha='right')
+        plt.xticks(ind, ('Bicep','Tricep lateral','Anterior deltoid','Medial deltoid','Posterior deltoid','Pectoralis major','Lower trapezius','Middle trapezius'))
+        plt.legend(loc='best')
+    plt.title('Normalized Muscle synergy for set 2')
+
+    plt.savefig('/home/mushenghe/Desktop/final_project/muscle_synergy/src/image/Oct23/bootstrap_#2_set2.png')
+    plt.show()
+
+    for i in range(9,13):
+        plt.subplot(2,2,i-8)
+        plt.bar(ind, all_H[i-1], width,label='basis_vec '+ str(i-8))
+        plt.ylabel('Normalized Activation Strength for basis vector' + str(i-8) + ' of set 3')
+        plt.xticks(rotation=45, ha='right')
+        plt.xticks(ind, ('Bicep','Tricep lateral','Anterior deltoid','Medial deltoid','Posterior deltoid','Pectoralis major','Lower trapezius','Middle trapezius'))
+        plt.legend(loc='best')
+    plt.title('Normalized Muscle synergy for set 3')
+
+    plt.savefig('/home/mushenghe/Desktop/final_project/muscle_synergy/src/image/Oct23/bootstrap_#2_set3.png')
+    plt.show()
+
+
+
 
     
 
     '''
-    # plot the RMSE of training set and validation set:
+    # boxplot the RMSE of training set and validation set:
 
     train_error = []
     test_error = []
@@ -260,11 +340,13 @@ if __name__ == "__main__":
     plt.xticks(xrange(0, len(ticks) * 2, 2), ticks)
     plt.xlim(-2, len(ticks)*2)
     plt.ylim(0, 8)
+    plt.ylabel('RMSE')
+    plt.xlabel('# of muscle synergy')
     plt.tight_layout()
     plt.savefig('nmf_compare.png')
     plt.show()
+    
     '''
-
 
 
 
@@ -272,6 +354,7 @@ if __name__ == "__main__":
 
     '''
     # plot the basis vectors
+
     EMGs = 8
     width = 0.5  
     ind = np.arange(EMGs) 

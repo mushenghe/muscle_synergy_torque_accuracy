@@ -91,14 +91,18 @@ def crossval_nmf(A, rank, p_holdout=.25, tol=1e-4):
     train_hist = [np.sqrt(np.mean((resid[M]) ** 2))]
     test_hist = [np.sqrt(np.mean((resid[~M]) ** 2))]
 
+    # impose nonnegativity
+    bounds_H = [(0, None) for _ in range(H.size)] 
+    bounds_W = [(0, None) for _ in range(W.size)]
+
   
     # optimize
     while not converged:
-        r = censored_least_squares(W, H, A, M)
+        r = censored_least_squares(W, H, A, M, bounds = bounds_H)
         H = r.x.reshape(rank, n)
 
         # update W
-        r = censored_least_squares(H.T, W.T, A.T, M.T)
+        r = censored_least_squares(H.T, W.T, A.T, M.T, bounds = bounds_W)
         W = r.x.reshape(rank, m).T
 
         # recprd train/test error

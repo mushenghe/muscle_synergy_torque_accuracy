@@ -25,8 +25,6 @@ def read_data(path, both_Arm=False):
     print('in read data')
     folders = glob.glob(
         path + '[c,s][0-9][0-9]/')  # returns all the folders in directory with format of 's%d' and 'c%d'
-    print('28')
-    print('folders',folders)
     if both_Arm:
         arms = ["Right", "Left"]
     else:
@@ -42,27 +40,21 @@ def read_data(path, both_Arm=False):
     demo_total = pd.DataFrame()
 
     for f in folders:  # based on the list of folders, step into each folder
-        print('f',f)
         sname = f[-4:-1]
         for a in arms:
-            print('a',a)
             # Obtain the baseline
             baseline_path = f + a + '/BaselineEMG/set01_trial01.txt'
             baseline_sit_path = f + a + '/BaselineEMG_sitting/set01_trial01.txt'
             baseline = compute_baseline_mean(baseline_path)
-            print('baseline',baseline)
             baseline_sit = compute_baseline_mean(baseline_sit_path)  # baseline data for the matching trials
             baseline_maximum = baseline
             baseline_maximum[:1] = baseline_sit[:1]  # baseline data for maximum
 
             max_d = maximum_data(f + a, baseline_maximum)
-            print(max_d)
 
             demo_total = demo_total.append(get_demo_info(f+a))
 
             ref_d, match_d = matching_trial_data(f + a, baseline_sit, max_d)
-            print(match_d)
-            print(ref_d)
 
             match_d['Su'], ref_d['Su'] = sname, sname
             match_d['Arm'], ref_d['Arm'] = a, a
@@ -70,9 +62,6 @@ def read_data(path, both_Arm=False):
         match_total = match_total.append(match_d)
         ref_total = ref_total.append(ref_d)
 
-
-    print(ref_total)
-    print(match_total)
 
     return ref_total, match_total, demo_total
 
@@ -224,9 +213,26 @@ def get_demo_info(filepath):
                                  ).drop(["Year", "Month", "Day"], axis=1)
     return demo_info
 
+def select_sets(matching_data, refer_data, emg_name):
+    Emg_match = []
+    Emg_ref = []
+    
+    Task_name = ['10%','30%','50%']
+
+    for task in Task_name:
+        emg_match = matching_data.loc[matching_data['Task'] == task, emg_name]
+        emg_ref = refer_data.loc[refer_data['Task'] == task, emg_name]
+        
+        Emg_match.append(emg_match.values.tolist())
+        Emg_ref.append(emg_ref.values.tolist())
+    
+    # Emg_match = Emg_match.tolist()
+    # Emg_ref = Emg_ref.tolist()
+
+    return Emg_match, Emg_ref
 
 if __name__ == "__main__":
     ref_total, match_total, demo_total = read_data('/home/mushenghe/Desktop/final_project/data/', both_Arm=False)
-    ref_total.to_csv('referenceData_111120.csv', index=False)
-    match_total.to_csv('matchData_111120.csv', index=False)
-    demo_total.to_csv('demoInfo_111120.csv', index=False)
+    ref_total.to_csv('referenceData_4su.csv', index=False)
+    match_total.to_csv('matchData_4su.csv', index=False)
+    demo_total.to_csv('demoInfo_4su.csv', index=False)

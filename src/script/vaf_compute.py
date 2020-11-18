@@ -1,13 +1,13 @@
-from process_helper import load_data,first_last_index,norm_vec,compute_baseline_mean,standard_process,process_state4_5,find_max_interval
-from matrix_factorization import multiplication_update,VAF
-from plot_multiple import plot_baseline,basisvec_N_plot
+from helper.process_helper import load_data,first_last_index,norm_vec,compute_baseline_mean,standard_process,process_state4_5,find_max_interval
+from helper.matrix_factorization import multiplication_update,VAF
+from helper.plot_multiple import plot_baseline,basisvec_N_plot
 import numpy as np
 from numpy import linalg as LA
 import matplotlib.pyplot as plt
 import itertools
 # from tqdm import tqdm
 from numpy.random import randn, rand
-from nmf_crosscal import *
+from helper.nmf_crosscal import *
 
 # Step1: Load BaselineEMG_sitting data, select datas when state = 1 and compute the mean for each EMG signal
 # Step2: Find the maximum for each EMGs

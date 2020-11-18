@@ -1,0 +1,5 @@
+SuNr,SuType,ArmTested,Age,Gender,DomArm,Handiness,Diabetes,YearsSinceStroke,MaxShoulderAb,MaxExtension,MaxFlexion,Elbow_Humerus,z-offset,Time
+7.0,c,Right,27.0,F,Right,Right,N,0.0,30.19,23.26,34.28,0.28,0.08,2020-11-13
+2.0,c,Right,22.0,F,Right,Right,N,0.0,30.0,16.0,26.0,0.33,0.072,2020-10-23
+4.0,c,Right,29.0,M,Right,Right,N,0.0,38.0,27.0,30.62,0.305,0.074,2020-11-09
+5.0,c,Right,25.0,F,Right,Right,N,0.0,35.12,18.79,29.0,0.305,0.07,2020-11-11

@@ -16,6 +16,7 @@ For details in experimental procedures, muscle synergy hypothesis as well as res
 
 - [Implementation Instruction](#implementation-instruction)
 
+#### Description
 
 This project aims to identify how muscles are synergistically activated at the arm during a multi-joint task.
 
@@ -33,13 +34,13 @@ The experimental setup, as shown in Figure 3, was comprised of a custom mechatro
 
 #### Experimental Procedures
 
-<img src="src/image/readme/setup.png.png" width="850">
+<img src="src/image/readme/setup.png" width="850">
 
 The participant was requested to not exercise the day before and of testing to avoid muscle fatigue. At the beginning of the testing session, the participant sat with their torso and waist strapped to the Biodex chair. The participant's testing arm was affixed to an isometric measurement device at 85° shoulder abduction, 40° shoulder flexion, and 90° elbow flexion.
 
 ## Demo and Result
 
-- One can find a demo video at [here](https://youtu.be/ntOk0ySuN0E)
+- One can find a demo video [here](https://youtu.be/x7HlRIp5OJ0)
   
 - Data recorded for further research in the format of  ` | Right Arm Torque | Left Arm Torque | Activity | Time Stamp | `
  <img src="journal_media/result_sample.png" width="700">

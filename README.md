@@ -90,13 +90,19 @@ To add more pictures for the perceptual testing tasks:
 
 Hardware:
 
-- DAQ ##
-- Torque sensor ##
+- Biodex chair (System 3 ProTM; Shirley, NY, USA)
+- Six-degree-of-freedom force/torque sensor (JR3, Model: 45E15A 1000N; Woodland, CA, USA). 
+- Monitor
+- Speaker
 
 Software:
-- Windows Machine
+- Linux Machine
 - Python 3.6
+- Matlab
 
 Package Requirement:
-- pygame (python)
-- nidaqmx (python)
+- numpy
+- matplotlib
+- pytest
+- sklearn
+- pandas

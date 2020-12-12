@@ -105,7 +105,7 @@ def crossval_nmf(A, rank, p_holdout=.25, tol=1e-4):
         r = censored_least_squares(H.T, W.T, A.T, M.T, bounds = bounds_W)
         W = r.x.reshape(rank, m).T
 
-        # recprd train/test error
+        # recorerd train/test error
         resid = np.dot(W, H) - A
 
         train_hist.append(np.sqrt(np.mean((resid[M])**2)))

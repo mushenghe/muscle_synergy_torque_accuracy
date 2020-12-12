@@ -231,6 +231,23 @@ def select_sets(matching_data, refer_data, emg_name):
 
     return Emg_match, Emg_ref
 
+def select_subjects(matching_data, refer_data, emg_name):
+    Emg_match = []
+    Emg_ref = []
+    
+    subj_name = ['c02','c04','c05','c07']
+
+    for suj in subj_name:
+        emg_match = matching_data.loc[matching_data['Su'] == suj, emg_name]
+        emg_ref = refer_data.loc[refer_data['Su'] == suj, emg_name]
+        
+        Emg_match.append(emg_match.values.tolist())
+        Emg_ref.append(emg_ref.values.tolist())
+    
+    # Emg_match = Emg_match.tolist()
+    # Emg_ref = Emg_ref.tolist()
+
+    return Emg_match, Emg_ref
 if __name__ == "__main__":
     ref_total, match_total, demo_total = read_data('/home/mushenghe/Desktop/final_project/data/', both_Arm=False)
     ref_total.to_csv('referenceData_4su.csv', index=False)

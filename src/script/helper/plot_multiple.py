@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
 def plot_emg_1trail(path):
@@ -74,9 +75,56 @@ def basisvec_N_plot(N,group,basis_vec,width):
 
 
 
+def bar_3d():
+    fig = plt.figure()
+    ax1 = fig.add_subplot(111, projection='3d')
+    ax1.set_yticklabels(labels,rotation=-15, va='center', ha='left')
 
+    xpos = [1,2,3,4,5,6,7,8,9,10]
+    ypos = [2,3,4,5,1,6,2,1,7,2]
+    num_elements = len(xpos)
+    zpos = [0,0,0,0,0,0,0,0,0,0]
+    dx = np.ones(10)
+    dy = np.ones(10)
+    dz = [1,2,3,4,5,6,7,8,9,10]
 
+    ax1.bar3d(xpos, ypos, zpos, dx, dy, dz, color='#00ceaa')
+    plt.show()
 
+def combine_Hs(H):
+    data = H
+    column_names = ['Bicep','Tricep lateral','Anterior deltoid','Medial deltoid','Posterior deltoid','Pectoralis major','Lower trapezius','Middle trapezius']
+    row_names = ['synergy1','synergy2']
+
+    fig = plt.figure()
+    ax = Axes3D(fig)
+
+    lx= 8            # Work out matrix dimensions
+    ly= 2
+    xpos = np.arange(0,lx,1)    # Set up a mesh of positions
+    ypos = np.arange(0,ly,1)
+    xpos, ypos = np.meshgrid(xpos+0.25, ypos+0.25)
+
+    xpos = xpos.flatten()   # Convert positions to 1D array
+    ypos = ypos.flatten()
+    zpos = np.zeros(lx*ly)
+
+    dx = 0.5 * np.ones_like(zpos)
+    dy = dx.copy()
+    dz = np.array(data).flatten()
+
+    cs = ['r', 'g'] 
+
+    ax.bar3d(xpos,ypos,zpos, dx, dy, dz, color=cs)
+
+    #sh()
+    ax.w_xaxis.set_ticklabels(column_names)
+    ax.w_yaxis.set_ticklabels(row_names)
+    ax.set_xlabel('Muscle')
+    ax.set_ylabel('Groups')
+    ax.set_zlabel('Activation Strength')
+
+    plt.show()
 
 '''
 plot the maxmeasure data and find the 1000 datapoint of the maxmum torque for each trail

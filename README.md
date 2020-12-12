@@ -1,122 +1,98 @@
-# muscle_synergy_torque_accuracy
-project to explore the relationship between muscle activation patterns and torque-perceptual accuracy
-# HealerBaxter
+# MUSCLE SYNERGY IDENTIFICATION
 
-This project aims to use deep learning and manipulation platform to train a two-armed robot to play the piano based on the human emotion.
+#### _Musheng He_
+**March ~ June; Oct ~ Dec 2020**
 
-<img src="images/emotion_detection.gif" height=300px width="420" align="left"/>
-<img src="images/piano_play.gif" height=300px  width="420" align="left"/>
+- [Method](#method)
+  - [Hardware Setup](#hardware-setup)
+  - [Experimental Procedures](#experimental-rocedures)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+- [Demo and Result](#demo)
 
-This repository provides Tenserflow code for traning and testing the emotion detection policies with deep learning in real time, as well as the ROS python code for manipulate the robot to play the piano.
+- [Software Structure & Included packages](#packages-breakdown)
 
-For an explanation of the neural network model structure please see my [portfolio post](https://mushenghe.github.io/)
+- [Implementation Instruction](#implementation-instruction)
 
-## Requirements
-* Ubuntu 18.04
-* ROS melodic
-* [Kaggle Dataset](https://www.kaggle.com/c/challenges-in-representation-learning-facial-expression-recognition-challenge/data)
-## Hardware:
-* [Baxter Robot](https://robots.ieee.org/robots/baxter/)
-* [Soft roll-up piano](https://www.amazon.com/iMeshbean-Portable-Flexible-Electronic-Keyboard/dp/B07W929C1Y/ref=sr_1_14?keywords=roll+up+piano+61+keys&qid=1577941987&s=toys-and-games&sr=1-14)
-* [AprilTags](http://wiki.ros.org/apriltag_ros)
-* [AA Batteries](https://www.amazon.com/AmazonBasics-Performance-Alkaline-Batteries-Count/dp/B00MNV8E0C?ref_=s9_apbd_orecs_hd_bw_bQMcmB&pf_rd_r=5RQFAAJHZ8EJ758E09VB&pf_rd_p=a50b8358-02f3-5eb1-a8ca-3ec2c519285c&pf_rd_s=merchandised-search-10&pf_rd_t=BROWSE&pf_rd_i=389577011)
 
-## Getting Started
-### Installation
-This implementation requires the following dependencies:
-* install moveit
-```
-sudo apt install ros-melodic-moveit
-```
-* install apriltag_ros package
-```
-sudo apt install ros-melodic-apriltag-ros
-```
-* install viewer package for ROS image topics
-```
-sudo apt install ros-melodic-image-view
-```
-* install image rectification and color processing package for ROS
-```
-sudo apt install ros-melodic-image-proc
-```
-* install tensorflow and keras
-    + Check if your Python environment is already configured: 
-    ```
-        sudo apt update
-        sudo apt install python3-dev python3-pip
-        sudo pip3 install -U virtualenv  # system-wide install
-    ```
+This project aims to identify how muscles are synergistically activated at the arm during a multi-joint task.
 
-    + Create a new virtual environment by choosing a Python interpreter and making a ./venv directory to hold it: 
-    ```
-        virtualenv --system-site-packages -p python3 ./venv
-    ```
-    
-    +  Activate the virtual environment using a shell-specific command:
-    ```
-        source ./venv/bin/activate  # sh, bash, ksh, or zsh
-    ```
-    
-    + Install packages within a virtual environment without affecting the host system setup. Start by upgrading pip: 
-    ```
-        pip install --upgrade pip
-        pip list  # show packages installed within the virtual environment
-    ```
-    
-    + Install the TensorFlow pip package:
-    ```
-        pip install --upgrade tensorflow
-    ```
-    
-    + Verify the install:
-    ```
-        python -c "import tensorflow as tf;print(tf.reduce_sum(tf.random.normal([1000, 1000])))"
-    ```
-    
-    + install Keras
-    ```
-        pip install keras
-    ```
+#### Motivation
 
-### Quickstart
-+ Create a new workspace, download healer.rosinstall file and use this to download the code
-    - Some code comes from forked repositories, with fixes to make it compile on Ubuntu 18.04 with melodic
-+ Builld the workspace
-    - Use catkin_make -DCMAKE_BUILD_TYPE = Release to enable optimizations and improve the resulting performance
-+ Connect and enable the robot, open the left camera
-+ Launch the piano playing launch file, manipulate the robot to the initial configuration, ready for emotion detection and piano playing
-+ Use pre-trained model webcam to detect the emotion, when sad face is detected, baxter start play the piano
+While seemingly simple, a motor task, such as retrieving an object from a high shelf, is very complicated. To achieve this task, movement-related signals are generated from the motor cortex of our brain and relayed to muscle fibers via motor neurons. In turn, muscles contract and the arm is raised and extended. There are more than 600 muscles in our body. Instead of controlling each muscle individually, our brain is thought to recruit these muscles in set groups. The activation of muscles in this grouped manner is termed muscle synergies and is part of a hierarchical control strategy. Activation of muscle synergies, rather than individual muscles, allows for a simplified control of one’s limb. In this work, the focus is on muscle activation at the arm. Specifically, the goal is to determine how muscles concurrently activate when an individual abducts at the shoulder and flexes at the elbow. As such, we can determine normal muscle activation patterns in a population that is neurologically and orthopaedically intact.
 
-Instructions:
-+ Create and build workspace
-```
-mkdir -p HealerBaxter/src
-cd HealerBaxter/src
-// download healer.rosinstall
-wstool init
-wstool merge healer.rosinstall
-wstool update
-cd ..
-catkin_make 
-source devel/setup.bash
-```
+## Method
 
-+ Connect Robot and manipulate it to the initial configuration
-```
-source src/healer/config/connect.sh
-roslaunch healer piano_playing.launch
-```
-+ Start detecting emotion, use python I/O file to send the detected emotion to baxter and start playing the piano
-```
-source ~/venv/bin/activate
-cd src/healer/emotion_detection/
-python test_model.py 
-rosrun healer piano_play 
-```
-## Future work
-+ Train model to recognize and distinguish people, make the system only work for one master
-+ Make baxter to have flexibility to play any series of notes based on the user input
-+ Make docker container to bring up all the dependencies
+#### Hardware Setup
+
+<img src="src/readme/setup.png" width="850">
+
+The experimental setup, as shown in Figure 3, was comprised of a custom mechatronic system, a monitor, speakers, and Biodex chair. The system acquires torque data from a six-degree-of-freedom load cell. The acquired data, in conjunction with a biomechanical model, indicate the extent to which the participant flexes about the testing elbow and abducts about the shoulder. In addition, the system quantifies muscle activity using eight surface electromyography (sEMG) electrodes (sEMG1: biceps, sEMG2: triceps lateral, sEMG3: anterior deltoid, sEMG4: medial deltoid, sEMG5: posterior deltoid, sEMG6: pectoralis major, sEMG7: lower trapezius, and sEMG8: middle trapezius). The sEMG signals indicate the electrical activity within each of the eight testing muscles. A DAQ card acquires data from these sensors, and a Matlab program streams the data. Data is collected at 1kHz.
+
+#### System Pipeline
+
+<img src="journal_media/visual_pipeline.png" width="850">
+
+The system acquires torque data indicating the extent to which the participant is flexing and extending about each elbow joint through two torque sensors. We used a DAQ card for data acquisition. A python script streams the sensory data at 1000Hz and passes signals to a callback function. The callback function utilizes the linear equation resulted from the [calibration](calibration/README.md) process to convert a voltage signal to the actual torque generated by the participant. A zeroing function can also be called to remove an offset in the voltage signal. The perceptual testing tasks use the results from the maximum voluntary torque test (maximum torque), as well as the real-time torque to determine the audiovisual feedback. The system renders the visual interface at 27Hz and records data at 1000Hz. 
+
+## Demo and Result
+
+- One can find a demo video at [here](https://youtu.be/ntOk0ySuN0E)
+  
+- Data recorded for further research in the format of  ` | Right Arm Torque | Left Arm Torque | Activity | Time Stamp | `
+ <img src="journal_media/result_sample.png" width="700">
+
+## Packages Breakdown
+
+#### NIstreamer
+
+- This is a Python library to stream data from the DAQ card channels at a desired frequency
+- Signals from the DAQ card can be further proceeded by calling callback functions
+- Artificial data streaming is available in the package without connecting to a DAQ card 
+
+#### ni_stream.py
+
+- The script serves as a callback function of the `NIstreamer` package
+- The script calls a maximum voluntary torque test first to obtain offset and maximum torque data for the perceptual testing tasks.
+- The script listens to a flag message from interfaces and triggers the recorder to write data in files with a desired frequency
+- All interfaces are rendered at 27Hz
+
+#### max_test.py
+- This script creates an interface and provides audiovisual feedback to the participant for a maximum torque test
+- This script returns the bias of the raw signal and the maximum torque generated by the participant's reference arm
+-  <img src="journal_media/mvt_test.png" width="800">
+
+#### arm_game.py
+- This script creates an interface and provides audiovisual feedback to the participant for perceptual testing tasks
+- The participant is asked to generate a torque larger than 40% of their maximum torque by the reference arm to remove the dirt on a picture (Phase 1)
+- The participant is asked to use the indicative arm to generate a torque that is the same strength of the torque generated in Phase 1 without audiovisual feedback 
+-  <img src="journal_media/game.png" width="800">
+
+## Implementation Instruction
+
+- Change file names you would like to save in `ni_stream.py`
+
+~~~
+python ni_stream.py
+~~~
+
+
+#### Change Interfaces
+
+To add more pictures for the perceptual testing tasks:
+-  add an image to the directory: ` armproj_ws\img\ `
+-  append the new image name to the `showpic` variable of the `showpic_generator` class in `arm_game.py`
+
+#### Test environment
+
+Hardware:
+
+- DAQ ##
+- Torque sensor ##
+
+Software:
+- Windows Machine
+- Python 3.6
+
+Package Requirement:
+- pygame (python)
+- nidaqmx (python)
